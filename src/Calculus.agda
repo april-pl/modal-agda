@@ -26,24 +26,48 @@ _∷_ : Context → Context → Context
 Γ ∷ Δ , x = (Γ ∷ Δ) , x
 Γ ∷ Δ ■   = (Γ ∷ Δ) ■
 
-variable
-    A B T : Type
-    Γ Γ₁ Γ₂ Δ : Context
+private variable
+    A B T U : Type
+    Γ Γ₁ Γ₂ : Context
 
 infix  4 _∈_
 -- Witnesses the membership of a variable with a given type in a context.
 data _∈_ : Type -> Context -> Set where
     Z  : A ∈ Γ , A
     S_ : A ∈ Γ → A ∈ Γ , B
+    -- L_ : A ∈ Γ → A ∈ Γ ■
 
-infixl 7 _∙_
+-- -- Witnesses the membership of a lock in the context.
+-- -- I would like it if this partitioned it!!
+-- data Lock : Context -> Set where
+--     ZL  : Lock (Γ ■)
+--     SL_ : Lock Γ → Lock (Γ , A) 
+
+infixl 6 _∙_
 infix  5 ƛ_
 infix  3 _⊢_
 -- The type of well-typed and scoped terms.
 data _⊢_ : Context → Type → Set where
-    nat   : ℕ → Γ ⊢ Nat
+    nat   : ℕ     → Γ ⊢ Nat
     var   : A ∈ Γ → Γ ⊢ A
-    ƛ_    : Γ , A ⊢ B → Γ ⊢ A ⇒ B
+
+    ƛ_    : Γ , A ⊢ B   → Γ   ⊢ A ⇒ B
+    box   : Γ ■   ⊢ A   → Γ   ⊢ □ A
+    unbox : Γ     ⊢ □ A → Γ ■ ⊢ A
+
     _∙_   : Γ ⊢ A ⇒ B → Γ ⊢ A → Γ ⊢ B
-    box   : Γ ■ ⊢ A → Γ ⊢ □ A
-    unbox : Γ₁ ⊢ □ A → Γ₁ ■ ∷ Γ₂ ⊢ A
+
+
+-- Well-typed substitution.
+-- _[_/_] : ∀ {Γ : Context} {A B : Type} 
+--        → Γ , B ⊢ A
+--        → Γ     ⊢ B
+--        → B ∈ Γ , B
+--        -----------
+--        → Γ ⊢ A
+-- -- nat n [ t₂ / x ] = nat n
+-- _[_/_] {Γ} {A} {B} t₁ (var x) (S y) = {!   !}
+-- _[_/_] {Γ} {A} {B} t₁ (var x) y = {!  !}
+-- _[_/_] {Γ} {□ A} {B} a@(box t₁) t₂ x = {!   !}
+-- _[_/_] (l ∙ r) t x = (l [ t / x ]) ∙ (r [ t / x ])
+-- _[_/_] _ _ = {!   !} 
