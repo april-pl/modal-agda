@@ -2,29 +2,22 @@ module Simul where
 open import Calculus
 open import Data.Bool renaming (T to Tr)
 open import Function
-
-Fl : Bool -> Set
-Fl = Tr ∘ not
-
-locked? : Context → Bool
-locked? ∅       = false
-locked? (Γ , x) = locked? Γ
-locked? (Γ ■)   = true
+open import Data.Bool 
 
 private variable
     t t' t₁ t₂ t₁' t₂' : _ ⊢ _
-    A B T U : Type
+    A B : Type
     Γ Γ₁ Γ₂ : Context
 
 infix 2 _⊢_~_∶_
 data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → Set where
     simLock : (t  : Γ ⊢ A) 
             → (t' : Γ ⊢ A)
-            → {Tr (locked? Γ)}
+            → {T (lock?ᵇ Γ)}
             ------------------
             → Γ ⊢ t ~ t' ∶ A
 
-    simVar : {Fl (locked? Γ₂)} 
+    simVar : {F (lock?ᵇ Γ₂)} 
            → {x : A ∈ (Γ₁ , A ∷ Γ₂)}
            ---------------------------------
            → Γ₁ , A ∷ Γ₂ ⊢ var x ~ var x ∶ A
