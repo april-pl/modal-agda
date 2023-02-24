@@ -1,5 +1,6 @@
 module Trans where
-open import Calculus
+open import Base
+open import Terms
 open import Subst
 
 private variable

@@ -1,5 +1,6 @@
 module Simul where
-open import Calculus
+open import Base
+open import Terms
 open import Trans
 open import Data.Bool renaming (T to Tr)
 open import Function
