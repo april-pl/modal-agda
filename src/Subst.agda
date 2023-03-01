@@ -5,6 +5,8 @@ open import Terms
 open import Relation.Binary.PropositionalEquality
 open import Data.Bool
 open import Data.Unit
+open import Data.Empty
+open import Data.Product renaming (_,_ to Prod)
 
 private variable
     A B : Type
@@ -68,9 +70,10 @@ sub σ (ƛ t)     = ƛ sub (sub-keep σ) t
 sub σ (box t)   = box (sub (sub-lock σ) t)
 sub σ (l ∙ r)   = sub σ l ∙ sub σ r
 -----------------------------------
-sub (sub-lock σ)   (unbox {ext = e} t) = unbox (sub {!   !} {!   !}) -- impossible
-sub (sub-keep σ)   (unbox {ext = e} t) = unbox (sub {!   !} {!   !})
-sub (sub-subs σ u) (unbox {ext = e} t) = unbox (sub {!   !} {!   !})
+sub (sub-lock σ)   (unbox {ext = e} t) with is∷-Γ■ e 
+... | Prod refl refl = {!   !}
+sub (sub-keep σ)   (unbox {ext = e} t) = {!   !}
+sub (sub-subs σ u) (unbox {ext = e} t) = {!   !}
 
 -- -- Type preserving substitution on the first free variable (used for β-reduction)
 -- -- _[_] : ∀ {Δ T U} → Δ , U ⊢ T → Δ ⊢ U → Δ ⊢ T
@@ -83,4 +86,4 @@ sub (sub-subs σ u) (unbox {ext = e} t) = unbox (sub {!   !} {!   !})
 -- --     σ : ∀ {α} → α ∈ Δ , U → Δ ⊢ α
 -- --     σ Z     = t₂
 -- --     σ (S x) = var x
-                
+                 

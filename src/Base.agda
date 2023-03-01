@@ -5,6 +5,7 @@ open import Data.Bool
 open import Data.Empty
 open import Data.Unit
 open import Relation.Binary.PropositionalEquality
+open import Data.Product renaming (_,_ to Prod)
 
 infixr 7 _⇒_
 -- Modal type constructors.
@@ -139,9 +140,24 @@ is∷-≡ (is-ext ext) rewrite is∷-≡ ext = refl
 ≡-is∷ {Γ₂ = ∅}      prf refl = is-nil
 ≡-is∷ {Γ₂ = Γ₂ , x} prf refl = is-ext (≡-is∷ prf refl)
 
+is∷-Γ₂≡∅ : Γ is Γ₁ ∷ ∅ → Γ ≡ Γ₁
+is∷-Γ₂≡∅ is-nil = refl
+
 is∷-¬■Γ : Γ is Γ₁ ∷ Γ₂ → ¬■Γ Γ₂
 is∷-¬■Γ is-nil       = tt
 is∷-¬■Γ (is-ext ext) = is∷-¬■Γ ext
+
+private module lemmas where
+    is∷-Γ■-∅ : Γ ■ is Γ₁ ∷ Γ₂ → Γ₂ ≡ ∅ 
+    is∷-Γ■-∅ {Γ₂ = ∅} ex = refl
+    
+    is∷-Γ■-≡ : Γ ■ is Γ₁ ∷ Γ₂ → Γ ■ ≡ Γ₁ 
+    is∷-Γ■-≡ {Γ₁ = Γ₁} ext with is∷-Γ■-∅ ext 
+    ... | refl = is∷-Γ₂≡∅ ext
+
+open lemmas
+is∷-Γ■ : Γ ■ is Γ₁ ∷ Γ₂ → (Γ ■ ≡ Γ₁) × (Γ₂ ≡ ∅)
+is∷-Γ■ ext = Prod (is∷-Γ■-≡ ext) (is∷-Γ■-∅ ext)
 
 -- Extensions are congruent under the left-of-lock operation ←■
 is∷-←■weak : Γ is Γ₁ ■ ∷ Γ₂ → Γ ⊆ Δ → Γ₁ ⊆ ←■ Δ
