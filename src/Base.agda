@@ -128,8 +128,20 @@ infix 3 _is_∷_
 -- Relates contexts extended to the right with lock free contexts
 -- Maybe need to formulate this for non-lock free contexts for other calculi
 data _is_∷_ : Context → Context → Context → Set where
-    is-nil : Γ is Γ ∷ ∅
+    is-nil : Γ is Γ  ∷ ∅
     is-ext : Γ is Γ₁ ∷ Γ₂ → Γ , A is Γ₁ ∷ Γ₂ , A 
+
+is∷-≡ : Γ is Γ₁ ∷ Γ₂ → Γ ≡ (Γ₁ ∷ Γ₂)
+is∷-≡ is-nil                         = refl
+is∷-≡ (is-ext ext) rewrite is∷-≡ ext = refl
+
+≡-is∷ : ¬■Γ Γ₂ → Γ ≡ (Γ₁ ∷ Γ₂) → Γ is Γ₁ ∷ Γ₂
+≡-is∷ {Γ₂ = ∅}      prf refl = is-nil
+≡-is∷ {Γ₂ = Γ₂ , x} prf refl = is-ext (≡-is∷ prf refl)
+
+is∷-¬■Γ : Γ is Γ₁ ∷ Γ₂ → ¬■Γ Γ₂
+is∷-¬■Γ is-nil       = tt
+is∷-¬■Γ (is-ext ext) = is∷-¬■Γ ext
 
 -- Extensions are congruent under the left-of-lock operation ←■
 is∷-←■weak : Γ is Γ₁ ■ ∷ Γ₂ → Γ ⊆ Δ → Γ₁ ⊆ ←■ Δ

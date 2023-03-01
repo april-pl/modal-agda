@@ -8,89 +8,54 @@ open import Data.Unit
 
 private variable
     A B : Type
-    Γ Δ Γ₁ Γ₂ : Context
+    Γ Δ Γ₁ Γ₂ Γ′ : Context
 
--- -- Extension lemma, for when we go 'under' binders.
--- ext : Γ₁ ⊆■ Γ₂ → Γ₁ , B ⊆■ Γ₂ , B
--- ext ρ Z■      =  Z■
--- ext ρ (S■ x)  =  S■ (ρ x)
+{-- 
+Acc ~ is ∷
+lCtx ~ ←■
+rCtx ~ ■→
+new ~ new (wtf is new)
+factorWk ~ sliceLeft ~ is∷-←■weak
+factorExt ~ wkLFExt ~ is∷Δweak
+--}
 
--- -- Extension lemma, for when we go under boxes!
--- ext■ : Γ₁ ⊆■ Γ₂ → Γ₁ ■ ⊆■ Γ₂ ■
--- ext■ ρ (L■ x) = L■ ρ x
+infix 3 σ_⇒_
+-- The type of substitutions, a substitution relation
+data σ_⇒_ : Context → Context → Set where
+    σ∅ : σ Γ  ⇒ ∅
+    σx : σ Γ  ⇒ Δ → Γ ⊢ A        → σ Γ ⇒ Δ , A
+    σ■ : σ Γ₁ ⇒ Δ → Γ is Γ₁ ∷ Γ₂ → σ Γ ⇒ Δ ■
 
--- -- And the inverse.
--- ■ext : Γ₁ ■ ⊆■ Γ₂ ■ → Γ₁ ⊆■ Γ₂
--- ■ext ρ x with ρ (L■ x)
--- ... | L■ x = x
-
--- -- Renamings preserve locklessness.
--- ¬■-Γ→¬■-ρΓ : Γ₁ ⊆■ Γ₂ → F (lock?ᵇ Γ₁) → F (lock?ᵇ Γ₂)
--- ¬■-Γ→¬■-ρΓ {Γ₂ = ∅} ρ prf = tt
--- ¬■-Γ→¬■-ρΓ ρ prf with prf 
--- ... | a = {!   !}
-
--- -- Commute renamings and boxes
--- ext-■ : ∀ {Γ₁ Γ₂} → (∀ {A} → A ∈ Γ₁ ■ → A ∈ Γ₂ ■) → (∀ {A} → A ∈ Γ₁ → A ∈ Γ₂)
--- ext-■ {Γ , A} {∅} ρ Z = {!  !}
--- ext-■ {Γ , A} {Γ₂ , x} ρ Z = {!   !}
--- ext-■ {Γ , A} {Γ₂ ■} ρ Z = {!   !}
--- ext-■ ρ (S x) = ext-■ (λ ()) x
-
-
--- Extension, but for terms..!
--- ext′ : (∀ {A}   → A ∈■ Γ₁     →     Γ₂ ⊢ A)
---      --------------------------------------
---      → (∀ {A B} → A ∈■ Γ₁ , B → Γ₂ , B ⊢ A)
--- ext′ σ Z■      =  var Z
--- ext′ σ (S■ x)  =  ren S■_ (σ x)
-
--- -- Again, now for boxes.
--- ext■′ : (∀ {A} → A ∈■ Γ₁   → Γ₂ ⊢ A)
---       ----------------------------------
---       → (∀ {A} → A ∈■ Γ₁ ■ → Γ₂ ■ ⊢ A)
--- ext■′ σ (L■ Z■) = {!   !}
--- ext■′ σ (L■ (S■ a)) = {!   !}
--- ext■′ σ (L■ (L■ a)) = {!   !}
+-- Apply a weakening to a substitution
+-- σ-weak : Γ ⊆ Γ′ → σ Γ ⇒ Δ → σ Γ′ ⇒ Δ
+-- σ-weak wk σ∅         = σ∅
+-- σ-weak wk (σx σ t)   = σx (σ-weak wk σ) (weakening wk t)
+-- σ-weak wk (σ■ σ ext) = σ■ (σ-weak (is∷-←■weak {!   !} {!   !}) σ) (is∷-Δweak {!   !} wk)
 
 -- Extension lemma for variables, when we go under a binder
-ƛext : (∀ {A}   → A ∈ Γ     →     Δ ⊢ A)
-     -----------------------------------
-     → (∀ {A B} → A ∈ Γ , B → Δ , B ⊢ A)
-ƛext σ Z     = var Z
-ƛext σ (S x) = weakening (sub-drop ⊆-refl) (σ x)
-
--- Extension lemma for boxes, for when we go under a box
--- ■ext : (∀ {A}   → A ∈ Γ  →    Δ ⊢ A)
---     --------------------------------------
---     → (∀ {A B} → A ∈ Γ ■ → Δ ■ ⊢ A)
--- ■ext σ ()
+ƛext : σ Γ ⇒ Δ → σ Γ , B ⇒ Δ , B
+ƛext σ∅ = σx σ∅ (var Z)
+ƛext (σx σ x) = σx {!   !} {!   !}
+ƛext (σ■ σ x) = {!   !}
 
 
--- lem-idk : (∀ {A} → A ∈ Γ → Δ ⊢ A) 
---         → Γ is Γ₁ ■ ∷ Γ₂
---         -------------------------
---         → Δ is {!   !} ∷ {!   !}
--- lem-idk = {!   !}
-
-sub : (∀ {A} → A ∈ Γ  → Δ ⊢ A)
-    --------------------------
-    → (∀ {A} → Γ ⊢ A  → Δ ⊢ A)
-sub σ (nat n)   = nat n
-sub σ (var x)   = σ x
-sub σ (ƛ t)     = ƛ sub (ƛext σ) t
-sub σ (l ∙ r)   = sub σ l ∙ sub σ r
-sub σ (box t)   = box (sub (λ ()) t)
-sub σ (unbox {ext = e} t) 
-    = unbox {ext = {!   !}} (sub {!   !} t)
-    where
-        -- lem-irrel : (∀ {A} → A ∈ Γ  → Δ ⊢ A) 
-        --           → Γ is Γ₁ ■ ∷ Γ₂
-        --           -------------------------
-        --           → (∀ {A} → A ∈ Γ₁ → Γ₁ ⊢ A)
-        -- lem-irrel σ (is-ext ext) x = lem-irrel (λ z → σ (S z)) ext x
-        -- lem-irrel σ is-nil (S x)   = var (S x)
-        -- lem-irrel σ is-nil Z       = var Z
+sub : σ Γ ⇒ Δ → Γ ⊢ A → Δ ⊢ A
+sub σ t = {!   !}
+-- sub σ (nat n) = nat n
+-- sub σ (var x) = σ x
+-- sub σ (ƛ t)   = ƛ sub (ƛext σ) t
+-- sub σ (l ∙ r) = sub σ l ∙ sub σ r
+-- sub σ (box t) = box (sub (λ ()) t)
+-- sub σ (unbox {ext = e} t) 
+--     = unbox {ext = {!   !}} (sub {!   !} t)
+--     where
+--         lem-irrel : (∀ {A} → A ∈ Γ  → Δ ⊢ A) 
+--                   → Γ is Γ₁ ■ ∷ Γ₂
+--                   -------------------------
+--                   → (∀ {A} → A ∈ Γ₁ → Γ₁ ⊢ A)
+--         lem-irrel σ (is-ext ext) x = lem-irrel (λ z → σ (S z)) ext x
+--         lem-irrel σ is-nil (S x)   = var (S x)
+--         lem-irrel σ is-nil Z       = var Z
 
 
 -- Type preserving substitution on the first free variable (used for β-reduction)
@@ -104,4 +69,4 @@ sub σ (unbox {ext = e} t)
 --     σ : ∀ {α} → α ∈ Δ , U → Δ ⊢ α
 --     σ Z     = t₂
 --     σ (S x) = var x
-   
+         
