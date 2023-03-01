@@ -33,8 +33,8 @@ weakening : Γ ⊆ Δ → Γ ⊢ A → Δ ⊢ A
 weakening wk (nat n) = nat n
 weakening wk (var x) = var (Γ-weak wk x)
 weakening wk (l ∙ r) = (weakening wk l) ∙ (weakening wk r)
-weakening wk (ƛ t)   = ƛ weakening (sub-keep wk) t
-weakening wk (box t) = box (weakening (sub-lock wk) t)
+weakening wk (ƛ t)   = ƛ weakening (⊆-keep wk) t
+weakening wk (box t) = box (weakening (⊆-lock wk) t)
 weakening wk (unbox {ext = e} t) 
     = unbox {ext = is∷-Δweak e wk} (weakening (is∷-←■weak e wk) t)
 

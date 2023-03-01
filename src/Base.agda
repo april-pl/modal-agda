@@ -108,20 +108,20 @@ data _∈_ : Type → Context → Set where
 infix 4 _⊆_
 -- Subcontexts, for weakening
 data _⊆_ : Context → Context → Set where
-    sub-empty :         ∅     ⊆ ∅
-    sub-drop  : Γ ⊆ Δ → Γ     ⊆ Δ , A
-    sub-keep  : Γ ⊆ Δ → Γ , A ⊆ Δ , A
-    sub-lock  : Γ ⊆ Δ → Γ ■   ⊆ Δ ■
+    ⊆-empty :         ∅     ⊆ ∅
+    ⊆-drop  : Γ ⊆ Δ → Γ     ⊆ Δ , A
+    ⊆-keep  : Γ ⊆ Δ → Γ , A ⊆ Δ , A
+    ⊆-lock  : Γ ⊆ Δ → Γ ■   ⊆ Δ ■
 
 ⊆-refl : Γ ⊆ Γ
-⊆-refl {Γ = Γ , x} = sub-keep ⊆-refl
-⊆-refl {Γ = Γ ■}   = sub-lock ⊆-refl
-⊆-refl {Γ = ∅}     = sub-empty
+⊆-refl {Γ = Γ , x} = ⊆-keep ⊆-refl
+⊆-refl {Γ = Γ ■}   = ⊆-lock ⊆-refl
+⊆-refl {Γ = ∅}     = ⊆-empty
 
 Γ-weak : Γ ⊆ Δ → A ∈ Γ → A ∈ Δ 
-Γ-weak (sub-drop rest) x     = S (Γ-weak rest x)
-Γ-weak (sub-keep rest) (S x) = S (Γ-weak rest x)
-Γ-weak (sub-keep rest) Z     = Z
+Γ-weak (⊆-drop rest) x     = S (Γ-weak rest x)
+Γ-weak (⊆-keep rest) (S x) = S (Γ-weak rest x)
+Γ-weak (⊆-keep rest) Z     = Z
 
 infix 3 _is_∷_
 -- Lock free extension relation
@@ -145,15 +145,15 @@ is∷-¬■Γ (is-ext ext) = is∷-¬■Γ ext
 
 -- Extensions are congruent under the left-of-lock operation ←■
 is∷-←■weak : Γ is Γ₁ ■ ∷ Γ₂ → Γ ⊆ Δ → Γ₁ ⊆ ←■ Δ
-is∷-←■weak ext          (sub-drop wk) = is∷-←■weak ext wk
-is∷-←■weak (is-ext ext) (sub-keep wk) = is∷-←■weak ext wk
-is∷-←■weak is-nil       (sub-lock wk) = wk
+is∷-←■weak ext          (⊆-drop wk) = is∷-←■weak ext wk
+is∷-←■weak (is-ext ext) (⊆-keep wk) = is∷-←■weak ext wk
+is∷-←■weak is-nil       (⊆-lock wk) = wk
 
 -- Apply a weakening to an entire extension
 is∷-Δweak : Γ is Γ₁ ■ ∷ Γ₂ → Γ ⊆ Δ → Δ is ((←■ Δ) ■) ∷ (■→ Δ)
-is∷-Δweak ext          (sub-drop wk) = is-ext (is∷-Δweak ext wk)
-is∷-Δweak (is-ext ext) (sub-keep wk) = is-ext (is∷-Δweak ext wk)
-is∷-Δweak is-nil       (sub-lock wk) = is-nil
+is∷-Δweak ext          (⊆-drop wk) = is-ext (is∷-Δweak ext wk)
+is∷-Δweak (is-ext ext) (⊆-keep wk) = is-ext (is∷-Δweak ext wk)
+is∷-Δweak is-nil       (⊆-lock wk) = is-nil
 
 -- Left congruence for extensions
 -- If Γ = Γ₁, Γ₂ then Δ, Γ = Δ, Γ₁, Γ₂
