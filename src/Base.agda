@@ -14,6 +14,24 @@ data Type : Set where
     □_   : Type → Type
     _⇒_ : Type → Type → Type
 
+_≡?_ : (A B : Type) → Dec (A ≡ B)
+Nat ≡? Nat = yes refl
+Nat ≡? (□ B) = no λ ()
+Nat ≡? (B ⇒ B₁) = no λ ()
+-------------------------
+(□ A) ≡? Nat = no λ ()
+(□ A) ≡? (□ B) with A ≡? B
+... | yes refl = yes refl
+... | no ¬refl = no λ{refl → ¬refl refl}
+(□ A) ≡? (B ⇒ B₁) = no λ ()
+---------------------------
+(A ⇒ A′) ≡? Nat   = no λ ()
+(A ⇒ A′) ≡? (□ B) = no λ ()
+(A ⇒ A′) ≡? (B ⇒ B′) with A ≡? B  | A′ ≡? B′
+... | yes refl | yes refl = yes refl
+... | no ¬refl | _        = no λ{refl → ¬refl refl}
+... | _        | no ¬refl = no λ{refl → ¬refl refl}
+
 infixl 5 _,_
 -- Contexts with locks.
 data Context : Set where
@@ -37,6 +55,12 @@ _∷_ : Context → Context → Context
 ¬■Γ ∅       = ⊤
 ¬■Γ (Γ , x) = ¬■Γ Γ
 ¬■Γ (Γ ■)   = ⊥
+
+-- Locked contexts
+■Γ : Context → Set
+■Γ ∅       = ⊥
+■Γ (Γ , x) = ■Γ Γ
+■Γ (Γ ■)   = ⊤
 
 -- -- Evidence that a context contains a lock.
 -- data Locked : Context -> Set where
@@ -119,6 +143,43 @@ data _⊆_ : Context → Context → Set where
 ⊆-refl {Γ = Γ ■}   = ⊆-lock ⊆-refl
 ⊆-refl {Γ = ∅}     = ⊆-empty
 
+-- private lemma-weak : (Γ : Context) → Γ , A ⊆ Δ → Γ ⊆ Δ
+-- lemma-weak ∅ wk = {!   !}
+-- lemma-weak (Γ , x) wk = {!   !}
+-- lemma-weak (Γ ■) (⊆-drop wk) = lemma-weak {!   !} {! wk!}
+-- lemma-weak (Γ ■) (⊆-keep wk) = {!   !}
+
+-- private lemma-⊆,≡ : Γ , A ⊆ Δ , B → A ≡ B
+-- lemma-⊆,≡ (⊆-drop wk) = {!   !}
+-- lemma-⊆,≡ (⊆-keep wk) = refl
+
+-- _⊆?_ : (Γ Δ : Context) → Dec (Γ ⊆ Δ)
+-- ∅ ⊆? ∅ = yes ⊆-empty
+-- ∅ ⊆? (Δ , x) with ∅ ⊆? Δ
+-- ... | yes why = yes (⊆-drop why)
+-- ... | no ¬why = no λ{ (⊆-drop wk) → ¬why wk}
+-- ∅ ⊆? (Δ ■) = no λ ()
+
+-- (Γ , x) ⊆? ∅ = no λ ()
+-- (Γ , x) ⊆? (Δ , y) with x ≡? y | Γ ⊆? Δ
+-- ... | no ¬refl | yes ⊆-empty = no λ{(⊆-keep wk) → ¬refl refl}
+-- ... | no ¬refl | yes (⊆-drop why) = no λ{wk → {!   !}}
+-- ... | no ¬refl | yes (⊆-keep why) = no λ{wk → {!   !}}
+-- ... | no ¬refl | yes (⊆-lock why) = no λ{wk → {!   !}}
+-- ... | no ¬refl | no ¬why = {!   !}
+-- ... | yes refl | yes why = {!   !}
+-- ... | yes refl | no ¬why = no λ{(⊆-drop wk) → ¬why {! !}
+--                    ; (⊆-keep wk) → ¬why wk}
+-- (Γ , x) ⊆? (Δ ■) = no λ ()
+
+-- (Γ ■) ⊆? ∅ = no λ ()
+-- (Γ ■) ⊆? (Δ , x) with Γ ⊆? (←■ Δ)
+-- ... | yes why = yes {!    !}
+-- ... | no ¬why = {!   !}
+-- (Γ ■) ⊆? (Δ ■)   with Γ ⊆? Δ
+-- ... | yes why = yes (⊆-lock why)
+-- ... | no ¬why = no λ{(⊆-lock wk) → ¬why wk}
+
 Γ-weak : Γ ⊆ Δ → A ∈ Γ → A ∈ Δ 
 Γ-weak (⊆-drop rest) x     = S (Γ-weak rest x)
 Γ-weak (⊆-keep rest) (S x) = S (Γ-weak rest x)
@@ -156,6 +217,7 @@ private module lemmas where
     ... | refl = is∷-Γ₂≡∅ ext
 
 open lemmas
+
 is∷-Γ■ : Γ ■ is Γ₁ ∷ Γ₂ → (Γ ■ ≡ Γ₁) × (Γ₂ ≡ ∅)
 is∷-Γ■ ext = Prod (is∷-Γ■-≡ ext) (is∷-Γ■-∅ ext)
 
@@ -175,4 +237,4 @@ is∷-Δweak is-nil       (⊆-lock wk) = is-nil
 -- If Γ = Γ₁, Γ₂ then Δ, Γ = Δ, Γ₁, Γ₂
 is∷-lcong : Γ is Γ₁ ∷ Γ₂ → (Δ ∷ Γ) is (Δ ∷ Γ₁) ∷ Γ₂
 is∷-lcong (is-ext ext) = is-ext (is∷-lcong ext) 
-is∷-lcong is-nil       = is-nil
+is∷-lcong is-nil       = is-nil       
