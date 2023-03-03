@@ -35,8 +35,10 @@ data Sub : Context → Context → Set where
     -- Weaken a substitution
     sub-trim : Sub Γ Δ → Δ ⊆ Δ′ → Sub Γ Δ′
 
--- Weaken the domain of a substitution
--- sub-dom-weak : Sub ?Ga
+sub-refl : Sub Γ Γ
+sub-refl {Γ = ∅}     = sub-base
+sub-refl {Γ = Γ , x} = sub-keep sub-refl
+sub-refl {Γ = Γ ■}   = sub-lock sub-refl
 
 -- Useful lemma for proofs involving the unbox constructor.
 -- ... since extensions of this type are produced by it,
@@ -47,6 +49,27 @@ is∷-Δsub ext          (sub-lock sub)    = is-nil
 is∷-Δsub (is-ext ext) (sub-keep sub)    = is-ext (is∷-Δsub ext sub)
 is∷-Δsub (is-ext ext) (sub-subs sub t)  = is∷-Δsub ext sub
 
+private module lemmas where
+    -- Weakening is congruent with the left-of-lock operation
+    lemma-⊆-←■ : Γ ⊆ Δ → ←■ Γ ⊆ ←■ Δ 
+    lemma-⊆-←■ ⊆-empty     = ⊆-empty
+    lemma-⊆-←■ (⊆-drop wk) = lemma-⊆-←■ wk
+    lemma-⊆-←■ (⊆-keep wk) = lemma-⊆-←■ wk
+    lemma-⊆-←■ (⊆-lock wk) = wk
+
+    -- Same as the above, but through substitutions
+    lemma-sub : Δ ⊆ Δ′ → Sub Γ (←■ Δ) → Sub Γ (←■ Δ′)
+    lemma-sub ⊆-empty sub = sub
+    lemma-sub (⊆-drop wk) sub = lemma-sub wk sub
+    lemma-sub (⊆-keep wk) sub = lemma-sub wk sub
+    lemma-sub (⊆-lock wk) sub = sub-trim sub wk
+
+    -- Match on a context that ends in cons.
+    lemma-, : Γ , A is Γ₁ ■ ∷ Γ₂ → Σ[ Γ₃ ∈ Context ] Γ₂ ≡ Γ₃ , A
+    lemma-, {Γ₂ = Γ₂ , x} (is-ext ext) = Prod Γ₂ refl
+
+open lemmas
+
 -- Much like before. This gives us a substitution that...
 -- ... only works left of a lock, from one produced by unbox.
 -- Γ   is   (Γ₁) ■ ∷ Γ₂
@@ -54,25 +77,13 @@ is∷-Δsub (is-ext ext) (sub-subs sub t)  = is∷-Δsub ext sub
 -- Δ   is   (Δ₁) ■ ∷ Γ₂
 sub-←■ : Γ is Γ₁ ■ ∷ Γ₂ → Sub Γ Δ → Sub Γ₁ (←■ Δ)
 sub-←■ ext sub with is∷-Δsub ext sub
+sub-←■ ext₁          (sub-trim sub wk) | ext₂        = lemma-sub wk (sub-←■ ext₁ sub)
 sub-←■ is-nil        (sub-lock sub)    | _           = sub
 sub-←■ (is-ext ext₁) (sub-keep sub)    | is-ext ext₂ = sub-←■ ext₁ sub
 sub-←■ (is-ext ext₁) (sub-subs sub t)  | ext₂        = sub-←■ ext₁ sub
-sub-←■ ext₁          (sub-trim sub wk) | ext₂        = {!   !}
 
-private module lemmas where
-    -- Weakening cannot introduce new locks
-    ⊆-←■ : Γ ⊆ Δ → ←■ Γ ≡ ←■ Δ 
-    ⊆-←■ ⊆-empty     = refl
-    ⊆-←■ (⊆-drop wk) = ⊆-←■ wk
-    ⊆-←■ (⊆-keep wk) = ⊆-←■ wk
-    ⊆-←■ (⊆-lock wk) with ⊆-←■ wk 
-    ... | a = {!   !}
 
-    lemma-, : Γ , A is Γ₁ ■ ∷ Γ₂ → Σ[ Γ₃ ∈ Context ] Γ₂ ≡ Γ₃ , A
-    lemma-, {Γ₂ = Γ₂ , x} (is-ext ext) = Prod Γ₂ refl
-
-open lemmas
-
+-- Parallel substitution!
 sub : Sub Γ Δ → Γ ⊢ A → Δ ⊢ A
 sub (sub-trim σ wk) t = weakening wk (sub σ t)
 --------------------------------------------------------------
@@ -91,17 +102,10 @@ sub σ (unbox {ext = e} t)
     -- See the above lemmas which transform subs and contexts respectively.
     = unbox {ext = is∷-Δsub e σ} (sub (sub-←■ e σ) t)
 
+-- Single variable substitution, from the above.
+-- _[_/_] : Γ ⊢ A → Δ ⊢ B
 
-
--- -- Type preserving substitution on the first free variable (used for β-reduction)
--- -- _[_] : ∀ {Δ T U} → Δ , U ⊢ T → Δ ⊢ U → Δ ⊢ T
--- -- _[_] {Δ} {T} {U} t₁ t₂ = sub {Γ₁ = Δ , U} {Γ₂ = Δ} (σ-wk σ) {T} t₁ 
--- --     where
--- --     σ-wk : ∀ {α} → (α ∈ Δ , U → Δ ⊢ α) → (α ∈■ Δ , U → Δ ⊢ α) 
--- --     σ-wk σ Z■ = σ Z
--- --     σ-wk σ (S■ x) = σ (S ∈-str {prf = {!   !}} x)
-
--- --     σ : ∀ {α} → α ∈ Δ , U → Δ ⊢ α
--- --     σ Z     = t₂
--- --     σ (S x) = var x
-                           
+-- Single variable substitution on the first free variable.
+-- Used for β-reduction... obviously.
+_[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
+t₁ [ t₂ ] = sub (sub-subs sub-refl t₂) t₁

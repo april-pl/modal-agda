@@ -8,11 +8,12 @@ private variable
     t′ l′ r′ t₁′ t₂′ : _ ⊢ _
     A B : Type
     Γ Γ₁ Γ₂ : Context
+    □ext : Γ is Γ₁ ■ ∷ Γ₂
 
 infix 4 _→β_
 -- Transitiion relation.
 data _→β_ : Γ ⊢ A → Γ ⊢ A → Set where
-    β■ : box (unbox t) →β t
+    β■ : box (unbox {ext = □ext} t) →β t
     βƛ : (ƛ t) ∙ r     →β t [ r ]
     
     ξappl : l →β l′ → l ∙ r →β l′ ∙ r

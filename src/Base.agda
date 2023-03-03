@@ -41,7 +41,7 @@ data Context : Set where
 
 private variable
     A B : Type
-    Γ Δ Γ₁ Γ₂ : Context
+    Γ Δ Γ₁ Γ₂ Γ₃ : Context
 
 infixl 4 _∷_
 -- -- Context combination.
@@ -137,6 +137,16 @@ data _⊆_ : Context → Context → Set where
     ⊆-drop  : Γ ⊆ Δ → Γ     ⊆ Δ , A
     ⊆-keep  : Γ ⊆ Δ → Γ , A ⊆ Δ , A
     ⊆-lock  : Γ ⊆ Δ → Γ ■   ⊆ Δ ■
+
+-- I wrote this entire thing using auto.
+⊆-assoc : Γ₁ ⊆ Γ₂ → Γ₂ ⊆ Γ₃ → Γ₁ ⊆ Γ₃
+⊆-assoc ⊆-empty wk₂      = wk₂
+⊆-assoc (⊆-drop wk₁) (⊆-drop wk₂) = ⊆-drop (⊆-assoc (⊆-drop wk₁) wk₂)
+⊆-assoc (⊆-drop wk₁) (⊆-keep wk₂) = ⊆-drop (⊆-assoc wk₁ wk₂)
+⊆-assoc (⊆-keep wk₁) (⊆-drop wk₂) = ⊆-drop (⊆-assoc (⊆-keep wk₁) wk₂)
+⊆-assoc (⊆-keep wk₁) (⊆-keep wk₂) = ⊆-keep (⊆-assoc wk₁ wk₂)
+⊆-assoc (⊆-lock wk₁) (⊆-drop wk₂) = ⊆-drop (⊆-assoc (⊆-lock wk₁) wk₂)
+⊆-assoc (⊆-lock wk₁) (⊆-lock wk₂) = ⊆-lock (⊆-assoc wk₁ wk₂)
 
 ⊆-refl : Γ ⊆ Γ
 ⊆-refl {Γ = Γ , x} = ⊆-keep ⊆-refl
