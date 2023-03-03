@@ -57,9 +57,17 @@ sub-←■ ext sub with is∷-Δsub ext sub
 sub-←■ is-nil        (sub-lock sub)    | _           = sub
 sub-←■ (is-ext ext₁) (sub-keep sub)    | is-ext ext₂ = sub-←■ ext₁ sub
 sub-←■ (is-ext ext₁) (sub-subs sub t)  | ext₂        = sub-←■ ext₁ sub
-sub-←■ ext₁          (sub-trim sub wk) | ext₂        = sub-←■ ext₁ {!   !}
+sub-←■ ext₁          (sub-trim sub wk) | ext₂        = {!   !}
 
 private module lemmas where
+    -- Weakening cannot introduce new locks
+    ⊆-←■ : Γ ⊆ Δ → ←■ Γ ≡ ←■ Δ 
+    ⊆-←■ ⊆-empty     = refl
+    ⊆-←■ (⊆-drop wk) = ⊆-←■ wk
+    ⊆-←■ (⊆-keep wk) = ⊆-←■ wk
+    ⊆-←■ (⊆-lock wk) with ⊆-←■ wk 
+    ... | a = {!   !}
+
     lemma-, : Γ , A is Γ₁ ■ ∷ Γ₂ → Σ[ Γ₃ ∈ Context ] Γ₂ ≡ Γ₃ , A
     lemma-, {Γ₂ = Γ₂ , x} (is-ext ext) = Prod Γ₂ refl
 
