@@ -64,9 +64,7 @@ private module lemmas where
     lemma-sub (⊆-keep wk) sub = lemma-sub wk sub
     lemma-sub (⊆-lock wk) sub = sub-trim sub wk
 
-    -- Match on a context that ends in cons.
-    lemma-, : Γ , A is Γ₁ ■ ∷ Γ₂ → Σ[ Γ₃ ∈ Context ] Γ₂ ≡ Γ₃ , A
-    lemma-, {Γ₂ = Γ₂ , x} (is-ext ext) = Prod Γ₂ refl
+    lemma-, = is∷-■,
 
 open lemmas
 
@@ -105,7 +103,18 @@ sub σ (unbox {ext = e} t)
 -- Single variable substitution, from the above.
 -- _[_/_] : Γ ⊢ A → Δ ⊢ B
 
+infix 4 _[_]
 -- Single variable substitution on the first free variable.
 -- Used for β-reduction... obviously.
 _[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
 t₁ [ t₂ ] = sub (sub-subs sub-refl t₂) t₁
+
+-- Some lemmas about substitution.
+
+private variable
+    x y     : _ ∈ _
+    t t₁ t₂ : _ ⊢ _
+
+-- -- Single substitution on a non-Z variable is the identity
+-- sub[]-≢ : (x : _ ∈ _) → (t₁ : Γ , B ⊢ A) → (t₂ : Γ ⊢ B) → t₁ ≡ var (S x) → _[_] t₁ t₂ ≡ t₁
+-- sub[]-≢ refl = {!   !} 

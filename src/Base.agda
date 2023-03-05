@@ -93,6 +93,16 @@ data _∈_ : Type → Context → Set where
     S : A ∈ Γ → A ∈ Γ , B
     -- L : A ∈ Γ → A ∈ Γ ■
 
+-- Variable membership has decidable equality
+-- Could extend this to different types?
+_≡?ₓ_ : (x y : A ∈ Γ) → Dec (x ≡ y)
+_≡?ₓ_ Z    Z      = yes refl
+_≡?ₓ_ Z    (S y)  = no (λ ())
+_≡?ₓ_ (S x) Z     = no (λ ())
+_≡?ₓ_ (S x) (S y) with x ≡?ₓ y
+... | yes refl = yes refl
+... | no ¬refl = no λ{refl → ¬refl refl}
+
 -- Elements right of an inclusion
 ∈→ : A ∈ Γ → Context
 ∈→ Z             = ∅
@@ -117,18 +127,7 @@ data _∈_ : Type → Context → Set where
 ■→ (Γ , x) = ■→ Γ , x
 ■→ (Γ ■)   = ∅
 
--- -- Witness a partition of a context around a type.
--- record _is_+_+_ (Γ Γ₁ : Context) (A : Type) (Γ₂ : Context) : Set where
---     constructor _&_ 
---     field
---         is← : {x : A ∈ Γ} → (←∈ x) ≡ (Γ₁ , A)
---         is→ : {x : A ∈ Γ} → (∈→ x) ≡ (Γ₁ , A)
 
--- -- If given a proof A ∈ Γ, this partitions the context into Γ₁ , A , Γ₂ .
--- ∈× : A ∈ Γ → Σ[ Γ₁ ∈  Context ] Σ[ Γ₂ ∈ Context ] Γ is Γ₁ + A + Γ₂
--- ∈× x = let Γ₁′ = ←∈ x
---            Γ₂′ = ∈→ x 
---        in Γ₁′ ,, Γ₂′ ,, ({! λ {a → ?}  !} & {!   !})
 
 infix 4 _⊆_
 -- Subcontexts, for weakening
@@ -218,18 +217,19 @@ is∷-¬■Γ : Γ is Γ₁ ∷ Γ₂ → ¬■Γ Γ₂
 is∷-¬■Γ is-nil       = tt
 is∷-¬■Γ (is-ext ext) = is∷-¬■Γ ext
 
-private module lemmas where
+-- Match on a context that ends in cons.
+is∷-■, : Γ , A is Γ₁ ■ ∷ Γ₂ → Σ[ Γ₃ ∈ Context ] Γ₂ ≡ Γ₃ , A
+is∷-■, {Γ₂ = Γ₂ , x} (is-ext ext) = Prod Γ₂ refl
+
+is∷-Γ■ : Γ ■ is Γ₁ ∷ Γ₂ → (Γ ■ ≡ Γ₁) × (Γ₂ ≡ ∅)
+is∷-Γ■ ext = Prod (is∷-Γ■-≡ ext) (is∷-Γ■-∅ ext)
+    where
     is∷-Γ■-∅ : Γ ■ is Γ₁ ∷ Γ₂ → Γ₂ ≡ ∅ 
     is∷-Γ■-∅ {Γ₂ = ∅} ex = refl
     
     is∷-Γ■-≡ : Γ ■ is Γ₁ ∷ Γ₂ → Γ ■ ≡ Γ₁ 
     is∷-Γ■-≡ {Γ₁ = Γ₁} ext with is∷-Γ■-∅ ext 
     ... | refl = is∷-Γ₂≡∅ ext
-
-open lemmas
-
-is∷-Γ■ : Γ ■ is Γ₁ ∷ Γ₂ → (Γ ■ ≡ Γ₁) × (Γ₂ ≡ ∅)
-is∷-Γ■ ext = Prod (is∷-Γ■-≡ ext) (is∷-Γ■-∅ ext)
 
 -- Extensions are congruent under the left-of-lock operation ←■
 is∷-←■weak : Γ is Γ₁ ■ ∷ Γ₂ → Γ ⊆ Δ → Γ₁ ⊆ ←■ Δ

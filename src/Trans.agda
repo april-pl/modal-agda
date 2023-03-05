@@ -20,5 +20,5 @@ data _→β_ : Γ ⊢ A → Γ ⊢ A → Set where
     ξappr : r →β r′ → l ∙ r →β l  ∙ r′
 
     ξbox   : t →β t′ → box   t →β box   t′
-    ξunbox : t →β t′ → unbox t →β unbox t′
+    ξunbox : t →β t′ → unbox {ext = □ext} t →β unbox {ext = □ext} t′
 
