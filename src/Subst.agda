@@ -2,7 +2,8 @@
 module Subst where
 open import Base
 open import Terms
-open import Relation.Binary.PropositionalEquality
+open import LFExt
+open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Bool
 open import Data.Unit
 open import Data.Empty
@@ -59,7 +60,7 @@ private module lemmas where
 
     -- Same as the above, but through substitutions
     lemma-sub : Δ ⊆ Δ′ → Sub Γ (←■ Δ) → Sub Γ (←■ Δ′)
-    lemma-sub ⊆-empty sub = sub
+    lemma-sub ⊆-empty     sub = sub
     lemma-sub (⊆-drop wk) sub = lemma-sub wk sub
     lemma-sub (⊆-keep wk) sub = lemma-sub wk sub
     lemma-sub (⊆-lock wk) sub = sub-trim sub wk
@@ -103,18 +104,74 @@ sub σ (unbox {ext = e} t)
 -- Single variable substitution, from the above.
 -- _[_/_] : Γ ⊢ A → Δ ⊢ B
 
-infix 4 _[_]
+infix 5 _[_]
 -- Single variable substitution on the first free variable.
 -- Used for β-reduction... obviously.
 _[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
 t₁ [ t₂ ] = sub (sub-subs sub-refl t₂) t₁
 
 -- Some lemmas about substitution.
-
 private variable
     x y     : _ ∈ _
     t t₁ t₂ : _ ⊢ _
 
+private module lemmas′ where
+    -- We need this lemma to prove the below
+    ⊆-refl-id : (x : A ∈ Γ) → Γ-weak ⊆-refl x ≡ x
+    ⊆-refl-id {Γ = Γ , B} (S x) rewrite ⊆-refl-id x = refl
+    ⊆-refl-id {Γ = Γ , B} Z                         = refl
+
+open lemmas′
+
+-- Γ , A ⊢ sub (sub-keep (sub-subs sub-refl a₁)) b₁ ~ sub (sub-keep (sub-subs sub-refl a₂)) b₂ ∶ B
+-- sub-keep-ƛ : () ≡ 
+
+-- sub-ƛ : {t₁ : Γ , A ⊢ B} → (ƛ t₁) [ t₂ ] ≡ ƛ (t₁ [ t₂ ])
+-- sub-ƛ {t₁ = t₁} {t₂ = t₂} = {! !}
+
+-- Substitution with sub-refl doesn't do anything - special case for variables.
+-- Probably true in general, but the case for unbox is annoying.
+-- We don't need it so this is way easier to prove.
+sub-refl-id-var : (t : Γ ⊢ A) → t ≡ var x → sub sub-refl t ≡ t
+sub-refl-id-var (var Z)     refl = refl
+sub-refl-id-var (var (S x)) refl 
+    rewrite sub-refl-id-var (var x) refl | ⊆-refl-id x = refl
+
+-- sub-refl-id {Γ = Γ , B} (var Z)     = refl
+-- sub-refl-id {Γ = Γ , B} (var (S x)) rewrite sub-refl-id (var x) | ⊆-refl-id x = refl
+
+-- Substitution with sub-refl doesn't actually do anything.
+-- Annoyingly, we have to do a bunch of useless case splits so agda reduces...
+-- Blegh!
+-- sub-refl-id : (t : Γ ⊢ A) → sub sub-refl t ≡ t
+-- sub-refl-id {Γ = ∅}     (nat x)     = refl
+-- sub-refl-id {Γ = Γ ■}   (nat x)     = refl
+-- sub-refl-id {Γ = Γ , B} (nat x)     = refl
+-- sub-refl-id {Γ = Γ , B} (var Z)     = refl
+-- sub-refl-id {Γ = Γ , B} (var (S x)) rewrite sub-refl-id (var x) | ⊆-refl-id x = refl
+-- -------------------------------------------------------------------------------------
+-- sub-refl-id {Γ = ∅}     (ƛ t)   rewrite sub-refl-id t = refl
+-- sub-refl-id {Γ = Γ ■}   (ƛ t)   rewrite sub-refl-id t = refl
+-- sub-refl-id {Γ = Γ , x} (ƛ t)   rewrite sub-refl-id t = refl
+-- sub-refl-id {Γ = ∅}     (box t) rewrite sub-refl-id t = refl
+-- sub-refl-id {Γ = Γ ■}   (box t) rewrite sub-refl-id t = refl
+-- sub-refl-id {Γ = Γ , x} (box t) rewrite sub-refl-id t = refl
+-- ------------------------------------------------------------
+-- sub-refl-id {Γ = ∅}     (l ∙ r) rewrite sub-refl-id l | sub-refl-id r = refl
+-- sub-refl-id {Γ = Γ ■}   (l ∙ r) rewrite sub-refl-id l | sub-refl-id r = refl
+-- sub-refl-id {Γ = Γ , x} (l ∙ r) rewrite sub-refl-id l | sub-refl-id r = refl
+-- ----------------------------------------------------------------------------
+-- sub-refl-id {Γ = Γ ■}   (unbox {ext = is-nil}   t) rewrite sub-refl-id t = refl
+-- sub-refl-id {Γ = Γ′ , B} (unbox {Γ₁ = Γ₁} {Γ₂ = Γ₂} {ext = is-ext e} t)  = {!         !}
+       
+
+        -- lasdf : (ext : Γ is (←■ Γ) ■ ∷ Γ₂) → sub-←■ ext sub-refl ≡ sub-refl
+        -- lasdf {Γ} ext with is∷-←■ ext
+        -- lasdf {∅}    ext  | refl = {!   !}
+        -- lasdf {Γ , x} ext | refl = {!   !}
+
+
 -- -- Single substitution on a non-Z variable is the identity
 -- sub[]-≢ : (x : _ ∈ _) → (t₁ : Γ , B ⊢ A) → (t₂ : Γ ⊢ B) → t₁ ≡ var (S x) → _[_] t₁ t₂ ≡ t₁
 -- sub[]-≢ refl = {!   !} 
+     

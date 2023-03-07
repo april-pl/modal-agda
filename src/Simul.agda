@@ -1,11 +1,12 @@
 module Simul where
 open import Base
+open import LFExt
 open import Terms
 open import Trans
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Function
 open import Data.Bool 
-open import Data.Product renaming (_,_ to _﹐_)
+open import Data.Product renaming (_,_ to _⸲_)
 open import Subst
 
 private variable
@@ -49,6 +50,7 @@ private module lemmas where
     -- sim-weak : Γ ⊆ Δ → Γ ⊢ t₁ ~ t₂ ∶ A → Δ ⊢ t₁ ~ t₂ ∶ A
     -- sim-weak wk sim = ?
 
+    -- sim-sub : Γ ⊢ 
 open lemmas
 
 -- Simulation implies typing...
@@ -75,7 +77,8 @@ ius : (t₁ t₂ : Γ , B ⊢ A)
 ius t₁ t₂ a₁ a₂ (sim-lock (is-ext ext) _ _) sim₂ = sim-lock ext (t₁ [ a₁ ]) (t₂ [ a₂ ])
 ---------------------------------------------------------------------------------------
 ius t₁ t₂ a₁ a₂ (sim-var Z)     sim₂ = sim₂
-ius t₁ t₂ a₁ a₂ (sim-var (S x)) sim₂ = {! !}
+ius t₁ t₂ a₁ a₂ (sim-var (S x)) sim₂ rewrite sub-refl-id-var (var x) refl with is∷-∈ x  
+... | Γ₁ ⸲ Γ₂ ⸲ ext = sim-var x
 --------------------------------------------
 ius t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B = U} {t₂ = r₁} {t₂′ = r₂} simₗ simᵣ) sim₂ with sit l₁ l₂ simₗ | sit r₁ r₂ simᵣ
 ... | refl | refl = sim-app (ius l₁ l₂ a₁ a₂ simₗ sim₂) (ius r₁ r₂ a₁ a₂ simᵣ sim₂)

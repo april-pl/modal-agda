@@ -2,6 +2,7 @@ module Trans where
 open import Base
 open import Terms
 open import Subst
+open import LFExt
 
 private variable
     t  l  r  t₁  t₂  : _ ⊢ _

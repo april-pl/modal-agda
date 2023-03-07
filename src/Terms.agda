@@ -1,5 +1,6 @@
 module Terms where
 open import Base
+open import LFExt
 open import Data.Nat 
 open import Data.Unit
 open import Data.Empty

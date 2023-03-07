@@ -14,20 +14,20 @@ data Type : Set where
     □_   : Type → Type
     _⇒_ : Type → Type → Type
 
-_≡?_ : (A B : Type) → Dec (A ≡ B)
-Nat ≡? Nat = yes refl
-Nat ≡? (□ B) = no λ ()
-Nat ≡? (B ⇒ B₁) = no λ ()
+_≡?ₜ_ : (A B : Type) → Dec (A ≡ B)
+Nat ≡?ₜ Nat = yes refl
+Nat ≡?ₜ (□ B) = no λ ()
+Nat ≡?ₜ (B ⇒ B₁) = no λ ()
 -------------------------
-(□ A) ≡? Nat = no λ ()
-(□ A) ≡? (□ B) with A ≡? B
+(□ A) ≡?ₜ Nat = no λ ()
+(□ A) ≡?ₜ (□ B) with A ≡?ₜ B
 ... | yes refl = yes refl
 ... | no ¬refl = no λ{refl → ¬refl refl}
-(□ A) ≡? (B ⇒ B₁) = no λ ()
+(□ A) ≡?ₜ (B ⇒ B₁) = no λ ()
 ---------------------------
-(A ⇒ A′) ≡? Nat   = no λ ()
-(A ⇒ A′) ≡? (□ B) = no λ ()
-(A ⇒ A′) ≡? (B ⇒ B′) with A ≡? B  | A′ ≡? B′
+(A ⇒ A′) ≡?ₜ Nat   = no λ ()
+(A ⇒ A′) ≡?ₜ (□ B) = no λ ()
+(A ⇒ A′) ≡?ₜ (B ⇒ B′) with A ≡?ₜ B  | A′ ≡?ₜ B′
 ... | yes refl | yes refl = yes refl
 ... | no ¬refl | _        = no λ{refl → ¬refl refl}
 ... | _        | no ¬refl = no λ{refl → ¬refl refl}
@@ -61,30 +61,6 @@ _∷_ : Context → Context → Context
 ■Γ ∅       = ⊥
 ■Γ (Γ , x) = ■Γ Γ
 ■Γ (Γ ■)   = ⊤
-
--- -- Evidence that a context contains a lock.
--- data Locked : Context -> Set where
---     Lock : Locked (Γ ■)
---     LExt : Locked Γ → Locked (Γ , A)
-
--- Decidable predicate for if a context is locked.
--- The boolean version seemed to work better?
--- lock? : (Γ : Context) → Dec (Locked Γ)
--- lock? ∅       = no λ ()
--- lock? (Γ ■)   = yes Lock
--- lock? (Γ , x) = map′ LExt (λ { (LExt ctx) → ctx }) (lock? Γ)
--- -- does  (lock? (Γ , x)) = does (lock? Γ)
--- -- proof (lock? (Γ , x)) with lock? Γ
--- -- ... | yes p = ofʸ (LExt p)
--- -- ... | no ¬p = ofⁿ (λ { (LExt ctx) → ¬p ctx })
-
--- -- Boolean predicate representing if a list is locked or not.
--- lock?ᵇ : Context → Bool
--- lock?ᵇ ∅       = false
--- lock?ᵇ (Γ , x) = lock?ᵇ Γ
--- lock?ᵇ (Γ ■)   = true
-
-
 
 infix 4 _∈_
 -- Witnesses the membership of a variable with a given type in a context.
@@ -193,58 +169,3 @@ data _⊆_ : Context → Context → Set where
 Γ-weak (⊆-drop rest) x     = S (Γ-weak rest x)
 Γ-weak (⊆-keep rest) (S x) = S (Γ-weak rest x)
 Γ-weak (⊆-keep rest) Z     = Z
-
-infix 3 _is_∷_
--- Lock free extension relation
--- Relates contexts extended to the right with lock free contexts
--- Maybe need to formulate this for non-lock free contexts for other calculi
-data _is_∷_ : Context → Context → Context → Set where
-    is-nil : Γ is Γ  ∷ ∅
-    is-ext : Γ is Γ₁ ∷ Γ₂ → Γ , A is Γ₁ ∷ Γ₂ , A 
-
-is∷-≡ : Γ is Γ₁ ∷ Γ₂ → Γ ≡ (Γ₁ ∷ Γ₂)
-is∷-≡ is-nil                         = refl
-is∷-≡ (is-ext ext) rewrite is∷-≡ ext = refl
-
-≡-is∷ : ¬■Γ Γ₂ → Γ ≡ (Γ₁ ∷ Γ₂) → Γ is Γ₁ ∷ Γ₂
-≡-is∷ {Γ₂ = ∅}      prf refl = is-nil
-≡-is∷ {Γ₂ = Γ₂ , x} prf refl = is-ext (≡-is∷ prf refl)
-
-is∷-Γ₂≡∅ : Γ is Γ₁ ∷ ∅ → Γ ≡ Γ₁
-is∷-Γ₂≡∅ is-nil = refl
-
-is∷-¬■Γ : Γ is Γ₁ ∷ Γ₂ → ¬■Γ Γ₂
-is∷-¬■Γ is-nil       = tt
-is∷-¬■Γ (is-ext ext) = is∷-¬■Γ ext
-
--- Match on a context that ends in cons.
-is∷-■, : Γ , A is Γ₁ ■ ∷ Γ₂ → Σ[ Γ₃ ∈ Context ] Γ₂ ≡ Γ₃ , A
-is∷-■, {Γ₂ = Γ₂ , x} (is-ext ext) = Prod Γ₂ refl
-
-is∷-Γ■ : Γ ■ is Γ₁ ∷ Γ₂ → (Γ ■ ≡ Γ₁) × (Γ₂ ≡ ∅)
-is∷-Γ■ ext = Prod (is∷-Γ■-≡ ext) (is∷-Γ■-∅ ext)
-    where
-    is∷-Γ■-∅ : Γ ■ is Γ₁ ∷ Γ₂ → Γ₂ ≡ ∅ 
-    is∷-Γ■-∅ {Γ₂ = ∅} ex = refl
-    
-    is∷-Γ■-≡ : Γ ■ is Γ₁ ∷ Γ₂ → Γ ■ ≡ Γ₁ 
-    is∷-Γ■-≡ {Γ₁ = Γ₁} ext with is∷-Γ■-∅ ext 
-    ... | refl = is∷-Γ₂≡∅ ext
-
--- Extensions are congruent under the left-of-lock operation ←■
-is∷-←■weak : Γ is Γ₁ ■ ∷ Γ₂ → Γ ⊆ Δ → Γ₁ ⊆ ←■ Δ
-is∷-←■weak ext          (⊆-drop wk) = is∷-←■weak ext wk
-is∷-←■weak (is-ext ext) (⊆-keep wk) = is∷-←■weak ext wk
-is∷-←■weak is-nil       (⊆-lock wk) = wk
-
--- Apply a weakening to an entire extension
-is∷-Δweak : Γ is Γ₁ ■ ∷ Γ₂ → Γ ⊆ Δ → Δ is ((←■ Δ) ■) ∷ (■→ Δ)
-is∷-Δweak ext          (⊆-drop wk) = is-ext (is∷-Δweak ext wk)
-is∷-Δweak (is-ext ext) (⊆-keep wk) = is-ext (is∷-Δweak ext wk)
-is∷-Δweak is-nil       (⊆-lock wk) = is-nil
-
--- Left congruence for extensions
--- If Γ = Γ₁, Γ₂ then Δ, Γ = Δ, Γ₁, Γ₂
-is∷-lcong : Γ is Γ₁ ∷ Γ₂ → (Δ ∷ Γ) is (Δ ∷ Γ₁) ∷ Γ₂
-is∷-lcong (is-ext ext) = is-ext (is∷-lcong ext) 
-is∷-lcong is-nil       = is-nil       
