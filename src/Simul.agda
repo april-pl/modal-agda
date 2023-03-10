@@ -44,15 +44,6 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
               ----------------------------------------------------------
               → Γ ■ ⊢ unbox {ext = □ext} t ~ unbox {ext = □ext} t′ ∶ A
 
-
--- Obviously this proof will require some syntactic lemmas, and here they are.
-private module lemmas where
-    -- sim-weak : Γ ⊆ Δ → Γ ⊢ t₁ ~ t₂ ∶ A → Δ ⊢ t₁ ~ t₂ ∶ A
-    -- sim-weak wk sim = ?
-
-    -- sim-sub : Γ ⊢ 
-open lemmas
-
 -- Simulation implies typing...
 -- Seriously, can't agda figure this one out itself?
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
@@ -64,6 +55,23 @@ sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂
 ... | refl = refl
 sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
 ... | refl = refl
+
+-- Obviously this proof will require some syntactic lemmas, and here they are.
+private module lemmas where
+    sim-weak : (t₁ t₂ : Γ ⊢ A) → Γ ⊆ Δ → Γ ⊢ t₁ ~ t₂ ∶ A → Σ[ t₁′ ∈ Δ ⊢ A ] Σ[ t₂′ ∈ Δ ⊢ A ] (Δ ⊢ t₁′ ~ t₂′ ∶ A)
+    sim-weak t₁ t₂ ⊆-empty     sim = t₁ ⸲ t₂ ⸲ sim
+    sim-weak t₁ t₂ (⊆-drop wk) sim with sim-weak t₁ t₂ wk sim
+    ... | t₁′ ⸲ t₂′ ⸲ sim′ = {!  !} ⸲ {!   !} ⸲ {!  !}
+    sim-weak t₁ t₂ (⊆-keep wk) sim = {! !} ⸲ {!   !} ⸲ {!   !}
+    sim-weak t₁ t₂ (⊆-lock wk) sim = {!   !} ⸲ {!   !} ⸲ {!   !}
+
+    -- ius-sub-keep : Γ , B , A  ⊢ sub           (sub-subs sub-refl a₁)  b₁ ~ sub           (sub-subs sub-refl a₂)  b₂ ∶ B
+    --              → Γ , A      ⊢ sub (sub-keep (sub-subs sub-refl a₁)) b₁ ~ sub (sub-keep (sub-subs sub-refl a₂)) b₂ ∶ B
+    -- ius-sub-keep = ?
+
+open lemmas
+
+
 
 -- The indistinguishability under substitution lemma.
 -- God, this is disgusting, isn't it?
@@ -84,7 +92,10 @@ ius t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B = U}
 ... | refl | refl = sim-app (ius l₁ l₂ a₁ a₂ simₗ sim₂) (ius r₁ r₂ a₁ a₂ simᵣ sim₂)
 -----------------------------------------------------------------------------------
 ius t₁ t₂ a₁ a₂ (sim-lam {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁ 
-... | refl = sim-lam {!   !}
+... | refl = let
+
+    lem = ius {!   !} {!   !} {!   !} {!   !} sim₁ {!   !}
+    in sim-lam {!   !}
 ---------------------------------------------------
 ius t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁
 ... | refl = sim-box {!   !}

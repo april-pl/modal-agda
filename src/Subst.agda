@@ -124,6 +124,7 @@ private module lemmas′ where
 open lemmas′
 
 -- Γ , A ⊢ sub (sub-keep (sub-subs sub-refl a₁)) b₁ ~ sub (sub-keep (sub-subs sub-refl a₂)) b₂ ∶ B
+-- 
 -- sub-keep-ƛ : () ≡ 
 
 -- sub-ƛ : {t₁ : Γ , A ⊢ B} → (ƛ t₁) [ t₂ ] ≡ ƛ (t₁ [ t₂ ])
@@ -169,9 +170,3 @@ sub-refl-id-var (var (S x)) refl
         -- lasdf {Γ} ext with is∷-←■ ext
         -- lasdf {∅}    ext  | refl = {!   !}
         -- lasdf {Γ , x} ext | refl = {!   !}
-
-
--- -- Single substitution on a non-Z variable is the identity
--- sub[]-≢ : (x : _ ∈ _) → (t₁ : Γ , B ⊢ A) → (t₂ : Γ ⊢ B) → t₁ ≡ var (S x) → _[_] t₁ t₂ ≡ t₁
--- sub[]-≢ refl = {!   !} 
-     
