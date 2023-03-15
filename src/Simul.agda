@@ -71,10 +71,11 @@ data _⊢_~_∶_ : (Γ : Context) → Δ ⊢ A → Δ ⊢ A → (A : Type) → S
 
 -- Simulation implies typing...
 -- Seriously, can't agda figure this one out itself?
-sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
+sit : (t₁ t₂ : Γ ⊢ B) → Δ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
 sit t₁         t₂         (sim-lock x _ _)                          = refl
 sit t₁         t₂         (sim-var x)                               = refl
-sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)         = {!   !}
+sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)  with sit t₁ t₂ sim
+... | a =  {!   !}
 sit _ _ _ = {!   !}
 -- sit (box t₁)   (box t₂)   (sim-box sim)       rewrite sit t₁ t₂ sim = refl
 -- sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂ simₗ
