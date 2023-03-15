@@ -54,4 +54,3 @@ weakening wk (ƛ t)   = ƛ weakening (⊆-keep wk) t
 weakening wk (box t) = box (weakening (⊆-lock wk) t)
 weakening wk (unbox {ext = e} t) 
     = unbox {ext = is∷-Δweak e wk} (weakening (is∷-←■weak e wk) t)
-

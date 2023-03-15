@@ -16,7 +16,7 @@ private variable
     □ext : Γ is Γ₁ ■ ∷ Γ₂
 
 infix 2 _⊢_~_∶_
-data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → Set where
+data _⊢_~_∶_ : (Γ : Context) → Δ ⊢ A → Δ ⊢ A → (A : Type) → Set where
     sim-lock : Γ is Γ₁ ■ ∷ Γ₂
              → (t  : Γ ⊢ A) 
              → (t′ : Γ ⊢ A)
@@ -44,26 +44,52 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
               ----------------------------------------------------------
               → Γ ■ ⊢ unbox {ext = □ext} t ~ unbox {ext = □ext} t′ ∶ A
 
+    sim-weak : Γ ⊢ t ~ t′ ∶ A
+             → Γ ⊆ Δ
+             ----------------
+             → Δ ⊢ t ~ t′ ∶ A
+
+
+-- Lemma to make sure sim-weak doesn't mess everything up
+-- sim-⊆ : {t t′ : Γ ⊢ A} → Δ ⊢ t ~ t′ ∶ A → Γ ⊆ Δ
+-- sim-⊆ (sim-lock x _ _) = ⊆-refl
+-- sim-⊆ (sim-var x) = ⊆-refl
+-- sim-⊆ (sim-app simₗ simᵣ) = sim-⊆ {!   !}
+-- sim-⊆ (sim-lam sim) = {!   !}
+-- sim-⊆ (sim-box sim) = {!   !}
+-- sim-⊆ (sim-unbox sim) = {!   !}
+-- sim-⊆ (sim-weak sim x) = {!   !}
+
+-- sim-unweak : {t t′ : Γ ⊢ A} → Δ ⊢ t ~ t′ ∶ A → Γ ⊢ t ~ t′ ∶ A
+-- sim-unweak (sim-var x)         = sim-var x
+-- sim-unweak (sim-lock ext _ _)  = {! sim-lock x t t′ !}
+-- sim-unweak (sim-app simₗ simᵣ) = sim-app {!   !} {!   !}
+-- sim-unweak (sim-lam sim)       = sim-lam (sim-unweak sim)
+-- sim-unweak (sim-box sim)       = sim-box (sim-unweak sim)
+-- sim-unweak (sim-unbox sim)     = {!   !}
+-- sim-unweak (sim-weak sim wk)   = {!  !}
+
 -- Simulation implies typing...
 -- Seriously, can't agda figure this one out itself?
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
 sit t₁         t₂         (sim-lock x _ _)                          = refl
 sit t₁         t₂         (sim-var x)                               = refl
-sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)       rewrite sit t₁ t₂ sim = refl
-sit (box t₁)   (box t₂)   (sim-box sim)       rewrite sit t₁ t₂ sim = refl
-sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂ simₗ
-... | refl = refl
-sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
-... | refl = refl
+sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)         = {!   !}
+sit _ _ _ = {!   !}
+-- sit (box t₁)   (box t₂)   (sim-box sim)       rewrite sit t₁ t₂ sim = refl
+-- sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂ simₗ
+-- ... | refl = refl
+-- sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
+-- ... | refl = refl
 
 -- Obviously this proof will require some syntactic lemmas, and here they are.
 private module lemmas where
-    sim-weak : (t₁ t₂ : Γ ⊢ A) → Γ ⊆ Δ → Γ ⊢ t₁ ~ t₂ ∶ A → Σ[ t₁′ ∈ Δ ⊢ A ] Σ[ t₂′ ∈ Δ ⊢ A ] (Δ ⊢ t₁′ ~ t₂′ ∶ A)
-    sim-weak t₁ t₂ ⊆-empty     sim = t₁ ⸲ t₂ ⸲ sim
-    sim-weak t₁ t₂ (⊆-drop wk) sim with sim-weak t₁ t₂ wk sim
-    ... | t₁′ ⸲ t₂′ ⸲ sim′ = {!  !} ⸲ {!   !} ⸲ {!  !}
-    sim-weak t₁ t₂ (⊆-keep wk) sim = {! !} ⸲ {!   !} ⸲ {!   !}
-    sim-weak t₁ t₂ (⊆-lock wk) sim = {!   !} ⸲ {!   !} ⸲ {!   !}
+    -- sim-weak : (t₁ t₂ : Γ ⊢ A) → Γ ⊆ Δ → Γ ⊢ t₁ ~ t₂ ∶ A → Σ[ t₁′ ∈ Δ ⊢ A ] Σ[ t₂′ ∈ Δ ⊢ A ] (Δ ⊢ t₁′ ~ t₂′ ∶ A)
+    -- sim-weak t₁ t₂ ⊆-empty     sim = t₁ ⸲ t₂ ⸲ sim
+    -- sim-weak t₁ t₂ (⊆-drop wk) sim with sim-weak t₁ t₂ wk sim
+    -- ... | t₁′ ⸲ t₂′ ⸲ sim′ = {!  !} ⸲ {!   !} ⸲ {!  !}
+    -- sim-weak t₁ t₂ (⊆-keep wk) sim = {! !} ⸲ {!   !} ⸲ {!   !}
+    -- sim-weak t₁ t₂ (⊆-lock wk) sim = {!   !} ⸲ {!   !} ⸲ {!   !}
 
     -- ius-sub-keep : Γ , B , A  ⊢ sub           (sub-subs sub-refl a₁)  b₁ ~ sub           (sub-subs sub-refl a₂)  b₂ ∶ B
     --              → Γ , A      ⊢ sub (sub-keep (sub-subs sub-refl a₁)) b₁ ~ sub (sub-keep (sub-subs sub-refl a₂)) b₂ ∶ B
@@ -94,7 +120,7 @@ ius t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B = U}
 ius t₁ t₂ a₁ a₂ (sim-lam {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁ 
 ... | refl = let
 
-    lem = ius {!   !} {!   !} {!   !} {!   !} sim₁ {!   !}
+    lem = ius b₁ {!   !} {!   !} {!   !} sim₁ {!   !}
     in sim-lam {!   !}
 ---------------------------------------------------
 ius t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁
