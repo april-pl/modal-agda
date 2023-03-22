@@ -3,7 +3,6 @@ open import Base
 open import LFExt
 open import Terms
 open import Trans
-open import Data.Nat 
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Function
 open import Data.Bool 
@@ -56,7 +55,3 @@ sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂
 ... | refl = refl
 sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
 ... | refl = refl
-
--- Inversion lemmas for all all shapes of simulation.
--- Showing related terms should have the same shape. 
-module inversions where

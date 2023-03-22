@@ -51,16 +51,9 @@ _∷_ : Context → Context → Context
 Γ ∷ Δ ■   = (Γ ∷ Δ) ■
 
 -- Lock-free contexts
-¬■Γ : Context → Set
-¬■Γ ∅       = ⊤
-¬■Γ (Γ , x) = ¬■Γ Γ
-¬■Γ (Γ ■)   = ⊥
-
--- Locked contexts
-■Γ : Context → Set
-■Γ ∅       = ⊥
-■Γ (Γ , x) = ■Γ Γ
-■Γ (Γ ■)   = ⊤
+data ¬■ : Context → Set where
+    ¬■∅ : ¬■ ∅
+    ¬■, : ¬■ Γ → ¬■ (Γ , A)
 
 infix 4 _∈_
 -- Witnesses the membership of a variable with a given type in a context.
@@ -102,8 +95,6 @@ _≡?ₓ_ (S x) (S y) with x ≡?ₓ y
 ■→ ∅       = ∅
 ■→ (Γ , x) = ■→ Γ , x
 ■→ (Γ ■)   = ∅
-
-
 
 infix 4 _⊆_
 -- Subcontexts, for weakening

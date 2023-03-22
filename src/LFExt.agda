@@ -29,9 +29,9 @@ is∷-≡ (is-ext ext) rewrite is∷-≡ ext = refl
 -- Most of these are really annoying and only used once :(
 
 -- Lock free extensions are equivalences, inverse direction with lock-freeness
-≡-is∷ : ¬■Γ Γ₂ → Γ ≡ (Γ₁ ∷ Γ₂) → Γ is Γ₁ ∷ Γ₂
-≡-is∷ {Γ₂ = ∅}      prf refl = is-nil
-≡-is∷ {Γ₂ = Γ₂ , x} prf refl = is-ext (≡-is∷ prf refl)
+≡-is∷ : ¬■ Γ₂ → Γ ≡ (Γ₁ ∷ Γ₂) → Γ is Γ₁ ∷ Γ₂
+≡-is∷ {Γ₂ = ∅}      prf       refl = is-nil
+≡-is∷ {Γ₂ = Γ₂ , x} (¬■, prf) refl = is-ext (≡-is∷ prf refl)
 
 -- Γ is Γ₁ if Γ₂ is empty
 is∷-Γ₂≡∅ : Γ is Γ₁ ∷ ∅ → Γ ≡ Γ₁
@@ -43,9 +43,13 @@ is∷-←■ (is-ext ext) = is∷-←■ ext
 is∷-←■ is-nil       = refl
 
 -- Lock free is lock free, obviously
-is∷-¬■Γ : Γ is Γ₁ ∷ Γ₂ → ¬■Γ Γ₂
-is∷-¬■Γ is-nil       = tt
-is∷-¬■Γ (is-ext ext) = is∷-¬■Γ ext
+is∷-¬■Γ : Γ is Γ₁ ∷ Γ₂ → ¬■ Γ₂
+is∷-¬■Γ is-nil       = ¬■∅
+is∷-¬■Γ (is-ext ext) = ¬■, (is∷-¬■Γ ext)
+
+-- Contexts with locks in aren't lock free (sunglasses!)
+¬■-■ : ¬■ Γ → Γ is Γ₁ ■ ∷ Γ₂ → ⊥
+¬■-■ (¬■, prf) (is-ext ext) = ¬■-■ prf ext
 
 -- Match on a context that has an inclusion
 is∷-∈ : A ∈ Γ → Σ[ Γ₁ ∈ Context ] Σ[ Γ₂ ∈ Context ] Γ is Γ₁ , A ∷ Γ₂

@@ -7,6 +7,7 @@ open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
 open import Function
 open import Data.Bool 
+open import Data.Empty
 open import Data.Nat
 open import Data.Product renaming (_,_ to _⸲_)
 open import Subst
@@ -80,22 +81,22 @@ ius t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with si
 -- ni (sim-app simₗ simᵣ)     (ξappl step) = {!   !} ⸲ {!   !} ⸲ {!   !}
 -- ni sim (ξappr step)  = {!   !}
 -- ni sim (ξbox step)   = {!   !}
--- ni sim (ξunbox step) = {!   !} 
+-- ni sim (ξunbox step) = {!   !}
 
-identity : (Γ : Context) → (A : Type) → Γ ⊢ A ⇒ A
-identity _ _ = ƛ (var Z)
+module inversions where
 
-sim-bad : ∅ ■ ⊢ identity _ _ ∙ (nat 0) ~ (nat 0) ∶ Nat 
-sim-bad = sim-lock is-nil ((ƛ var Z) ∙ nat 0) (nat 0)
+open inversions
 
-red-bad : identity (∅ ■) _ ∙ (nat 0) →β (nat 0)
-red-bad = βƛ
-
-issue : ¬(∀{Γ : Context} {A : Type} {t₁ t₂ t₁′ : Γ ⊢ A}
-          → Γ ⊢ t₁ ~ t₂ ∶ A 
-          → t₁ →β t₁′ 
-          ------------------------------------------------------
-          → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ →β t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
-        )
-issue ni with ni sim-bad red-bad
-... | _ ⸲ () ⸲ _
+-- Non-interference for the Fitch calculus
+ni : ¬■ Γ
+   → Γ ⊢ t₁ ~ t₂ ∶ A 
+   → t₁ →β t₁′ 
+   ------------------------------------------------------
+   → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ →β t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
+ni prf (sim-lock ext _ _) _ = ⊥-elim (¬■-■ prf ext)
+---------------------------------------------------
+ni prf sim β■ = {!   !}
+ni prf sim βƛ = {!   !}
+ni prf (sim-app sim sim₁) (ξappl step) = {!   !} ⸲ {!   !} ⸲ {!   !}
+ni prf sim (ξappr step) = {!   !}
+ni prf sim (ξunbox step) = {!   !}   
