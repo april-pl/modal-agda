@@ -101,8 +101,10 @@ sub σ (unbox {ext = e} t)
     -- See the above lemmas which transform subs and contexts respectively.
     = unbox {ext = is∷-Δsub e σ} (sub (sub-←■ e σ) t)
 
--- Single variable substitution, from the above.
--- _[_/_] : Γ ⊢ A → Δ ⊢ B
+private variable
+    x y     : _ ∈ _
+    t t₁ t₂ : _ ⊢ _
+
 
 infix 5 _[_]
 -- Single variable substitution on the first free variable.
@@ -110,11 +112,17 @@ infix 5 _[_]
 _[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
 t₁ [ t₂ ] = sub (sub-subs sub-refl t₂) t₁
 
--- Some lemmas about substitution.
-private variable
-    x y     : _ ∈ _
-    t t₁ t₂ : _ ⊢ _
+-- infix 5 _[_/_]′
+-- -- Single variable substitution, from the above.
+-- _[_/_]′ : Γ ⊢ A → (Γ₁ ∷ Γ₂) ⊢ B → Γ is Γ₁ , B ∷ Γ₂ → (Γ₁ ∷ Γ₂) ⊢ A
+-- t₁ [ t₂ / is-nil ]′   = t₁ [ t₂ ] 
+-- t₁ [ t₂ / is-ext x ]′ = sub (sub-keep (build-sub x (sub-subs sub-refl {!   !}))) t₁ 
+--     where
+--     build-sub : Γ is Γ₁ , A ∷ Γ₂ → Sub (Γ₁ , A) Γ₁ → Sub Γ (Γ₁ ∷ Γ₂)
+--     build-sub (is-ext ext) sub = sub-keep (build-sub ext sub)
+--     build-sub is-nil       sub = sub
 
+-- Some lemmas about substitution.
 private module lemmas′ where
     -- We need this lemma to prove the below
     ⊆-refl-id : (x : A ∈ Γ) → Γ-weak ⊆-refl x ≡ x
