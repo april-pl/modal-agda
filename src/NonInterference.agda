@@ -54,37 +54,11 @@ ius prf t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B 
 ... | refl | refl = sim-app (ius prf l₁ l₂ a₁ a₂ simₗ sim₂) (ius prf r₁ r₂ a₁ a₂ simᵣ sim₂)
 -----------------------------------------------------------------------------------
 ius _ t₁ t₂ a₁ a₂ (sim-lam {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁ 
-... | refl = {!   !}
+... | refl = sim-lam {!   !}
 ---------------------------------------------------
 ius _ t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁
-... | refl = {!   !}
--- ... | refl = sim-box (sim-lock is-nil (sub (sub-lock (sub-subs sub-refl a₁)) b₁)
---                                       (sub (sub-lock (sub-subs sub-refl a₂)) b₂))
-
--- The first leg of non-interference. This says related terms reduce together.
--- β~ : Γ ⊢ t₁ ~ t₂ ∶ A
---    → t₁ →β t₁′
---    -----------------
---    → Σ[ t₂′ ∈ Γ ⊢ A ] t₂ →β t₂′
--- β~ sim β■ = {!   !}
--- β~ sim βƛ = {!   !}
--- β~ sim (ξappl step)  = {!   !}
--- β~ sim (ξappr step)  = {!   !}
--- β~ sim (ξbox step)   = {!   !}
--- β~ sim (ξunbox step) = {!   !}   
-
--- Non-interference for the Fitch calculus
--- ni : Γ ⊢ t₁ ~ t₂ ∶ A 
---    → t₁ →β t₁′ 
---    ------------------------------------------------------
---    → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ →β t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
--- ni sim β■ = {!   !}
--- ni sim βƛ = {!   !}
--- ni (sim-lock x .(_ ∙ _) _) (ξappl step) = {!   !}
--- ni (sim-app simₗ simᵣ)     (ξappl step) = {!   !} ، {!   !} ، {!   !}
--- ni sim (ξappr step)  = {!   !}
--- ni sim (ξbox step)   = {!   !}
--- ni sim (ξunbox step) = {!   !}
+... | refl = sim-box (sim-lock is-nil (sub (sub-lock (sub-subs sub-refl a₁)) b₁)
+                                      (sub (sub-lock (sub-subs sub-refl a₂)) b₂))
 
 module inversions where
     -- inv-∙l : 
@@ -125,4 +99,4 @@ ni prf sim@(sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξ
            ، ξappr βr₂ 
            ، sim-app simₗ ind
            
-ni prf sim (ξunbox step) = {!   !}     
+ni () (sim-unbox _) (ξunbox _)
