@@ -9,7 +9,7 @@ open import Function
 open import Data.Bool 
 open import Data.Empty
 open import Data.Nat
-open import Data.Product renaming (_,_ to _⸲_)
+open import Data.Product renaming (_,_ to _،_)
 open import Subst
 open import Simul
 
@@ -22,11 +22,11 @@ private variable
 -- Obviously this proof will require some syntactic lemmas, and here they are.
 private module lemmas where
     -- sim-weak : (t₁ t₂ : Γ ⊢ A) → Γ ⊆ Δ → Γ ⊢ t₁ ~ t₂ ∶ A → Σ[ t₁′ ∈ Δ ⊢ A ] Σ[ t₂′ ∈ Δ ⊢ A ] (Δ ⊢ t₁′ ~ t₂′ ∶ A)
-    -- sim-weak t₁ t₂ ⊆-empty     sim = t₁ ⸲ t₂ ⸲ sim
+    -- sim-weak t₁ t₂ ⊆-empty     sim = t₁ ، t₂ ، sim
     -- sim-weak t₁ t₂ (⊆-drop wk) sim with sim-weak t₁ t₂ wk sim
-    -- ... | t₁′ ⸲ t₂′ ⸲ sim′ = {!  !} ⸲ {!   !} ⸲ {!  !}
-    -- sim-weak t₁ t₂ (⊆-keep wk) sim = {! !} ⸲ {!   !} ⸲ {!   !}
-    -- sim-weak t₁ t₂ (⊆-lock wk) sim = {!   !} ⸲ {!   !} ⸲ {!   !}
+    -- ... | t₁′ ، t₂′ ، sim′ = {!  !} ، {!   !} ، {!  !}
+    -- sim-weak t₁ t₂ (⊆-keep wk) sim = {! !} ، {!   !} ، {!   !}
+    -- sim-weak t₁ t₂ (⊆-lock wk) sim = {!   !} ، {!   !} ، {!   !}
 
     -- ius-sub-keep : Γ , B , A  ⊢ sub           (sub-subs sub-refl a₁)  b₁ ~ sub           (sub-subs sub-refl a₂)  b₂ ∶ B
     --              → Γ , A      ⊢ sub (sub-keep (sub-subs sub-refl a₁)) b₁ ~ sub (sub-keep (sub-subs sub-refl a₂)) b₂ ∶ B
@@ -36,27 +36,30 @@ open lemmas
 
 -- The indistinguishability under substitution lemma.
 -- God, this is disgusting, isn't it?
-ius : (t₁ t₂ : Γ , B ⊢ A)
+ius : ¬■ Γ
+    → (t₁ t₂ : Γ , B ⊢ A)
     → (a₁ a₂ : Γ     ⊢ B)  
     -----------------------------------
     → Γ , B ⊢ t₁        ~ t₂        ∶ A 
     → Γ     ⊢ a₁        ~ a₂        ∶ B
     -----------------------------------
     → Γ     ⊢ t₁ [ a₁ ] ~ t₂ [ a₂ ] ∶ A
-ius t₁ t₂ a₁ a₂ (sim-lock (is-ext ext) _ _) sim₂ = sim-lock ext (t₁ [ a₁ ]) (t₂ [ a₂ ])
+ius _ t₁ t₂ a₁ a₂ (sim-lock (is-ext ext) _ _) sim₂ = sim-lock ext (t₁ [ a₁ ]) (t₂ [ a₂ ])
 ---------------------------------------------------------------------------------------
-ius t₁ t₂ a₁ a₂ (sim-var Z)     sim₂ = sim₂
-ius t₁ t₂ a₁ a₂ (sim-var (S x)) sim₂ rewrite sub-refl-id-var (var x) refl with is∷-∈ x  
-... | Γ₁ ⸲ Γ₂ ⸲ ext = sim-var x
+ius _ t₁ t₂ a₁ a₂ (sim-var Z)     sim₂ = sim₂
+ius _ t₁ t₂ a₁ a₂ (sim-var (S x)) sim₂ rewrite sub-refl-id-var (var x) refl with is∷-∈ x  
+... | Γ₁ ، Γ₂ ، ext = sim-var x
 --------------------------------------------
-ius t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B = U} {t₂ = r₁} {t₂′ = r₂} simₗ simᵣ) sim₂ with sit l₁ l₂ simₗ | sit r₁ r₂ simᵣ
-... | refl | refl = sim-app (ius l₁ l₂ a₁ a₂ simₗ sim₂) (ius r₁ r₂ a₁ a₂ simᵣ sim₂)
+ius prf t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B = U} {t₂ = r₁} {t₂′ = r₂} simₗ simᵣ) sim₂ with sit l₁ l₂ simₗ | sit r₁ r₂ simᵣ
+... | refl | refl = sim-app (ius prf l₁ l₂ a₁ a₂ simₗ sim₂) (ius prf r₁ r₂ a₁ a₂ simᵣ sim₂)
 -----------------------------------------------------------------------------------
-ius t₁ t₂ a₁ a₂ (sim-lam {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁ 
+ius _ t₁ t₂ a₁ a₂ (sim-lam {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁ 
 ... | refl = {!   !}
 ---------------------------------------------------
-ius t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁
-... | refl = sim-box {!   !}
+ius _ t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁
+... | refl = {!   !}
+-- ... | refl = sim-box (sim-lock is-nil (sub (sub-lock (sub-subs sub-refl a₁)) b₁)
+--                                       (sub (sub-lock (sub-subs sub-refl a₂)) b₂))
 
 -- The first leg of non-interference. This says related terms reduce together.
 -- β~ : Γ ⊢ t₁ ~ t₂ ∶ A
@@ -78,13 +81,13 @@ ius t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with si
 -- ni sim β■ = {!   !}
 -- ni sim βƛ = {!   !}
 -- ni (sim-lock x .(_ ∙ _) _) (ξappl step) = {!   !}
--- ni (sim-app simₗ simᵣ)     (ξappl step) = {!   !} ⸲ {!   !} ⸲ {!   !}
+-- ni (sim-app simₗ simᵣ)     (ξappl step) = {!   !} ، {!   !} ، {!   !}
 -- ni sim (ξappr step)  = {!   !}
 -- ni sim (ξbox step)   = {!   !}
 -- ni sim (ξunbox step) = {!   !}
 
 module inversions where
-
+    -- inv-∙l : 
 open inversions
 
 -- Non-interference for the Fitch calculus
@@ -96,7 +99,30 @@ ni : ¬■ Γ
 ni prf (sim-lock ext _ _) _ = ⊥-elim (¬■-■ prf ext)
 ---------------------------------------------------
 ni prf sim β■ = {!   !}
-ni prf sim βƛ = {!   !}
-ni prf (sim-app sim sim₁) (ξappl step) = {!   !} ⸲ {!   !} ⸲ {!   !}
-ni prf sim (ξappr step) = {!   !}
-ni prf sim (ξunbox step) = {!   !}   
+
+ni prf sim@(sim-app {t₁ = f₁} {f₂} {t₂ = x₁} {x₂} simƛ simᵣ) βƛ 
+                                 with sit _ _ sim | sit _ _ simƛ | sit _ _ simᵣ 
+... | refl | refl | refl         with simƛ 
+... | sim-lock ext _ _ = ⊥-elim (¬■-■ prf ext)
+... | sim-lam {t = b₁} {b₂} sim∘ with sit _ _ sim∘
+... | refl = b₂ [ x₂ ] 
+           ، βƛ 
+           ، ius prf b₁ b₂ x₁ x₂ sim∘ simᵣ
+
+ni prf sim@(sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξappl step) 
+                         with sit _ _ sim | sit _ _ simₗ | sit _ _ simᵣ 
+... | refl | refl | refl with ni prf simₗ step
+... | l₂′ ، βl₂ ، ind    with sit _ _ ind
+... | refl = l₂′ ∙ r₂ 
+           ، ξappl βl₂ 
+           ، sim-app ind simᵣ
+
+ni prf sim@(sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξappr step) 
+    with sit _ _ sim | sit _ _ simₗ | sit _ _ simᵣ 
+... | refl | refl | refl with ni prf simᵣ step
+... | r₂′ ، βr₂ ، ind    with sit _ _ ind
+... | refl = l₂ ∙ r₂′ 
+           ، ξappr βr₂ 
+           ، sim-app simₗ ind
+           
+ni prf sim (ξunbox step) = {!   !}     
