@@ -24,4 +24,3 @@ data _→β_ : Γ ⊢ A → Γ ⊢ A → Set where
     -- Otherwise box 1 ~ box ((λx. x) 1), and NI is broken. 
     -- ξbox   : t →β t′ → box   t →β box   t′
     ξunbox : t →β t′ → unbox {ext = □ext} t →β unbox {ext = □ext} t′
-

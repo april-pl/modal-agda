@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module NonInterference where
 open import Base
 open import LFExt
@@ -12,6 +13,7 @@ open import Data.Nat
 open import Data.Product renaming (_,_ to _،_)
 open import Subst
 open import Simul
+
 
 private variable
     t t′ t₁ t₂ t₁′ t₂′ a a₁ a₂ a′ b b₁ b₂ b′ : _ ⊢ _
@@ -31,6 +33,9 @@ private module lemmas where
     -- ius-sub-keep : Γ , B , A  ⊢ sub           (sub-subs sub-refl a₁)  b₁ ~ sub           (sub-subs sub-refl a₂)  b₂ ∶ B
     --              → Γ , A      ⊢ sub (sub-keep (sub-subs sub-refl a₁)) b₁ ~ sub (sub-keep (sub-subs sub-refl a₂)) b₂ ∶ B
     -- ius-sub-keep = ?
+
+    -- lemma-sub : Γ     ⊢ sub s₁ (ƛ t₁)        
+    --           → Γ , A ⊢ sub (sub-keep s₁) t₁ ~ sub (sub-keep s₂) t₂ : B
 
 open lemmas
 
@@ -53,8 +58,12 @@ ius _ t₁ t₂ a₁ a₂ (sim-var (S x)) sim₂ rewrite sub-refl-id-var (var x)
 ius prf t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B = U} {t₂ = r₁} {t₂′ = r₂} simₗ simᵣ) sim₂ with sit l₁ l₂ simₗ | sit r₁ r₂ simᵣ
 ... | refl | refl = sim-app (ius prf l₁ l₂ a₁ a₂ simₗ sim₂) (ius prf r₁ r₂ a₁ a₂ simᵣ sim₂)
 -----------------------------------------------------------------------------------
-ius _ t₁ t₂ a₁ a₂ (sim-lam {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁ 
-... | refl = sim-lam {!   !}
+ius prf t₁ t₂ a₁ a₂ sim@(sim-lam {A = T} {t = b₁} {t′ = b₂} {B = U} sim₁) sim₂ 
+    with sit _ _ sim | sit b₁ b₂ sim₁ | sit _ _ sim₂
+... | refl | refl | refl = 
+    let a = {!   !}
+    --in sim-lam (ius (¬■, prf) {!  !} {!   !} {!   !} {!   !} {!   !} {!  !})
+    in {!   !}
 ---------------------------------------------------
 ius _ t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁
 ... | refl = sim-box (sim-lock is-nil (sub (sub-lock (sub-subs sub-refl a₁)) b₁)
@@ -71,8 +80,8 @@ ni : ¬■ Γ
    ------------------------------------------------------
    → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ →β t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
 ni prf (sim-lock ext _ _) _ = ⊥-elim (¬■-■ prf ext)
+ni ()  (sim-unbox _)      _
 ---------------------------------------------------
-ni prf sim β■ = {!   !}
 
 ni prf sim@(sim-app {t₁ = f₁} {f₂} {t₂ = x₁} {x₂} simƛ simᵣ) βƛ 
                                  with sit _ _ sim | sit _ _ simƛ | sit _ _ simᵣ 
@@ -92,11 +101,10 @@ ni prf sim@(sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξ
            ، sim-app ind simᵣ
 
 ni prf sim@(sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξappr step) 
-    with sit _ _ sim | sit _ _ simₗ | sit _ _ simᵣ 
+                         with sit _ _ sim | sit _ _ simₗ | sit _ _ simᵣ 
 ... | refl | refl | refl with ni prf simᵣ step
 ... | r₂′ ، βr₂ ، ind    with sit _ _ ind
 ... | refl = l₂ ∙ r₂′ 
            ، ξappr βr₂ 
            ، sim-app simₗ ind
            
-ni () (sim-unbox _) (ξunbox _)

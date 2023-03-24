@@ -50,6 +50,9 @@ _∷_ : Context → Context → Context
 Γ ∷ Δ , x = (Γ ∷ Δ) , x
 Γ ∷ Δ ■   = (Γ ∷ Δ) ■
 
+∷-, : (Γ₁ ∷ Γ₂ , A) ≡ (Γ₁ ∷ Γ₂) , A
+∷-, = refl 
+
 -- Lock-free contexts
 data ¬■ : Context → Set where
     ¬■∅ : ¬■ ∅
