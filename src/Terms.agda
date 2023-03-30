@@ -1,5 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
-
 module Terms where
 open import Base
 open import LFExt
@@ -58,22 +56,3 @@ weakening wk (ƛ t)   = ƛ weakening (⊆-keep wk) t
 weakening wk (box t) = box (weakening (⊆-lock wk) t)
 weakening wk (unbox {ext = e} t) 
     = unbox {ext = is∷-Δweak e wk} (weakening (is∷-←■weak e wk) t)
-
-private swapped : Γ is Γ₁ , A , B ∷ Γ₂ → Context
-swapped {Γ} {Γ₁} {A} {B} {Γ₂} _ = (Γ₁ , B , A) ∷ Γ₂
-
-private helper : (ext : Γ is Γ₁ , A , B ∷ Γ₂) → swapped ext is Γ₁ , B , A ∷ Γ₂
-helper is-nil       = is-nil
-helper (is-ext ext) = is-ext (helper ext)
-
--- Exchange isn't admissable around locks, but here are some special cases.
--- exchange : Γ is Γ₁ , A , B ∷ Γ₂ → Γ ⊢ T → Σ[ Γ′ ∈ Context ] Γ′ is Γ₁ , B , A ∷ Γ₂ × Γ′ ⊢ T
--- exchange ext (nat x)   = swapped ext ، helper ext ، nat x
--- exchange ext (var x)   = swapped ext ، helper ext ، {!   !}
--- exchange ext (box t)   = swapped ext ، helper ext ، {!   !}
--- exchange ext (unbox t) = swapped ext ، helper ext ، {!   !}
--- exchange ext (l ∙ r)   = swapped ext ، helper ext ، {!  !} ∙ {!   !}
--- exchange {_} {Γ₁} {A} {B} {Γ₂} ext (ƛ_ {A = U} t) rewrite ∷-, {Γ₁ , B , A} {Γ₂} {U} = swapped ext ، helper ext ، ƛ {!    !}
-
-exchange′ : Γ , A , B ⊢ T → Γ , B , A ⊢ T
-exchange′ t = {!   !}

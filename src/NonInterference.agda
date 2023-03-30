@@ -41,33 +41,32 @@ open lemmas
 
 -- The indistinguishability under substitution lemma.
 -- God, this is disgusting, isn't it?
-ius : ¬■ Γ
-    → (t₁ t₂ : Γ , B ⊢ A)
-    → (a₁ a₂ : Γ     ⊢ B)  
+ius : (t₁ t₂ : Γ ⊢ A)
+    → (σ : Sub Γ Δ)
     -----------------------------------
-    → Γ , B ⊢ t₁        ~ t₂        ∶ A 
-    → Γ     ⊢ a₁        ~ a₂        ∶ B
+    → Γ ⊢ t₁         ~ t₂         ∶ A 
     -----------------------------------
-    → Γ     ⊢ t₁ [ a₁ ] ~ t₂ [ a₂ ] ∶ A
-ius _ t₁ t₂ a₁ a₂ (sim-lock (is-ext ext) _ _) sim₂ = sim-lock ext (t₁ [ a₁ ]) (t₂ [ a₂ ])
----------------------------------------------------------------------------------------
-ius _ t₁ t₂ a₁ a₂ (sim-var Z)     sim₂ = sim₂
-ius _ t₁ t₂ a₁ a₂ (sim-var (S x)) sim₂ rewrite sub-refl-id-var (var x) refl with is∷-∈ x  
-... | Γ₁ ، Γ₂ ، ext = sim-var x
---------------------------------------------
-ius prf t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B = U} {t₂ = r₁} {t₂′ = r₂} simₗ simᵣ) sim₂ with sit l₁ l₂ simₗ | sit r₁ r₂ simᵣ
-... | refl | refl = sim-app (ius prf l₁ l₂ a₁ a₂ simₗ sim₂) (ius prf r₁ r₂ a₁ a₂ simᵣ sim₂)
------------------------------------------------------------------------------------
-ius prf t₁ t₂ a₁ a₂ sim@(sim-lam {A = T} {t = b₁} {t′ = b₂} {B = U} sim₁) sim₂ 
-    with sit _ _ sim | sit b₁ b₂ sim₁ | sit _ _ sim₂
-... | refl | refl | refl = 
-    let a = {!   !}
-    --in sim-lam (ius (¬■, prf) {!  !} {!   !} {!   !} {!   !} {!   !} {!  !})
-    in {!   !}
----------------------------------------------------
-ius _ t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁
-... | refl = sim-box (sim-lock is-nil (sub (sub-lock (sub-subs sub-refl a₁)) b₁)
-                                      (sub (sub-lock (sub-subs sub-refl a₂)) b₂))
+    → Δ ⊢ (sub σ t₁) ~ (sub σ t₂) ∶ A
+ius = {!   !}
+-- ius _ t₁ t₂ a₁ a₂ (sim-lock (is-ext ext) _ _) sim₂ = sim-lock ext (t₁ [ a₁ ]) (t₂ [ a₂ ])
+-- ---------------------------------------------------------------------------------------
+-- ius _ t₁ t₂ a₁ a₂ (sim-var Z)     sim₂ = sim₂
+-- ius _ t₁ t₂ a₁ a₂ (sim-var (S x)) sim₂ rewrite sub-refl-id-var (var x) refl with is∷-∈ x  
+-- ... | Γ₁ ، Γ₂ ، ext = sim-var x
+-- --------------------------------------------
+-- ius prf t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B = U} {t₂ = r₁} {t₂′ = r₂} simₗ simᵣ) sim₂ with sit l₁ l₂ simₗ | sit r₁ r₂ simᵣ
+-- ... | refl | refl = sim-app (ius prf l₁ l₂ a₁ a₂ simₗ sim₂) (ius prf r₁ r₂ a₁ a₂ simᵣ sim₂)
+-- -----------------------------------------------------------------------------------
+-- ius prf t₁ t₂ a₁ a₂ sim@(sim-lam {A = T} {t = b₁} {t′ = b₂} {B = U} sim₁) sim₂ 
+--     with sit _ _ sim | sit b₁ b₂ sim₁ | sit _ _ sim₂
+-- ... | refl | refl | refl = 
+--     let a = {!   !}
+--     --in sim-lam (ius (¬■, prf) {!  !} {!   !} {!   !} {!   !} {!   !} {!  !})
+--     in {!   !}
+-- ---------------------------------------------------
+-- ius _ t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁
+-- ... | refl = sim-box (sim-lock is-nil (sub (sub-lock (sub-subs sub-refl a₁)) b₁)
+--                                       (sub (sub-lock (sub-subs sub-refl a₂)) b₂))
 
 module inversions where
     -- inv-∙l : 
@@ -90,7 +89,9 @@ ni prf sim@(sim-app {t₁ = f₁} {f₂} {t₂ = x₁} {x₂} simƛ simᵣ) βƛ
 ... | sim-lam {t = b₁} {b₂} sim∘ with sit _ _ sim∘
 ... | refl = b₂ [ x₂ ] 
            ، βƛ 
-           ، ius prf b₁ b₂ x₁ x₂ sim∘ simᵣ
+        --    ، ius prf b₁ b₂ x₁ x₂ sim∘ simᵣ
+            ، {!   !}
+            -- ، ius b₁ b₂ {! sub-subs ? ? !} sim∘
 
 ni prf sim@(sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξappl step) 
                          with sit _ _ sim | sit _ _ simₗ | sit _ _ simᵣ 
