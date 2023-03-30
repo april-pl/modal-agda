@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 module NonInterference where
 open import Base
 open import LFExt
@@ -61,17 +60,12 @@ ius prf t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B 
 ius prf t₁ t₂ a₁ a₂ sim@(sim-lam {A = T} {t = b₁} {t′ = b₂} {B = U} sim₁) sim₂ 
     with sit _ _ sim | sit b₁ b₂ sim₁ | sit _ _ sim₂
 ... | refl | refl | refl = 
-    let a = {!   !}
-    --in sim-lam (ius (¬■, prf) {!  !} {!   !} {!   !} {!   !} {!   !} {!  !})
-    in {!   !}
+    {!   !}
 ---------------------------------------------------
 ius _ t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁
 ... | refl = sim-box (sim-lock is-nil (sub (sub-lock (sub-subs sub-refl a₁)) b₁)
                                       (sub (sub-lock (sub-subs sub-refl a₂)) b₂))
 
-module inversions where
-    -- inv-∙l : 
-open inversions
 
 -- Non-interference for the Fitch calculus
 ni : ¬■ Γ
@@ -108,3 +102,4 @@ ni prf sim@(sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξ
            ، ξappr βr₂ 
            ، sim-app simₗ ind
            
+ 
