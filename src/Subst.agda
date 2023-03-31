@@ -23,32 +23,57 @@ factorExt ~ wkLFExt ~ is∷Δweak
 --}
 
 infixr 3 _⇉_
-infixr 4 _•■
-infixr 4 _•_
--- The type of substitutions, done properly this time
-data _⇉_ : Context → Context → Set where
-    -- Base substitution
-    ε : Γ ⇉ ∅
-    -- Weaken a substitution
-    p : Γ , A ⇉ Γ 
+-- infixr 4 _•■
+-- infixr 4 _•_
 
-    -- Under locks
-    _•■ : Γ ⇉ Δ         → Γ ■ ⇉ Δ ■
-    -- Extend a substitution with a term
-    _•_ : Γ ⇉ Δ → Δ ⊢ A → Γ ⇉ Δ , A
-    -- Compose substitutions
-    _◦_ : Γ ⇉ Δ → Δ ⇉ θ → Γ ⇉ θ
+-- The type of substitutions, done properly this time
+_⇉_ : Context → Context → Set
+Γ ⇉ Δ = ∀{A : Type} → A ∈ Δ → Γ ⊢ A
+
+ε : Γ ⇉ ∅
+ε = λ ()
+
+_•■ : Γ ⇉ Δ → Γ ■ ⇉ Δ ■
+σ •■ = λ ()
+
+p : Γ , A ⇉ Γ 
+p x = var (S x)
+
+_•_ : Γ ⇉ Δ → Δ ⊢ A → Γ ⇉ Δ , A
+(σ₁ • t) Z = {!   !}
+(σ₁ • t) (S x) = σ₁ x
+
+
+
+
+-- data _⇉_ : Context → Context → Set where
+--     -- Base substitution
+--     ε : Γ ⇉ ∅
+--     -- Weaken a substitution
+
+--     -- Under locks
+--     _•■ : Γ ⇉ Δ         → Γ ■ ⇉ Δ ■
+--     -- Extend a substitution with a term
+--     _•_ : Γ ⇉ Δ → Δ ⊢ A → Γ ⇉ Δ , A
+--     -- Compose substitutions
+--     _◦_ : Γ ⇉ Δ → Δ ⇉ θ → Γ ⇉ θ
+
+-- f : Γ ⇉ Δ → A ∈ Δ → Γ ⊢ A
+-- f p x = var (S x)
+-- f (σ • t) Z = {!   !}
+-- f (σ • t) (S x) = f σ x
+-- f (σ₁ ◦ σ₂) x = f σ₁ {!   !}
 
 -- q : Context → 
 
 -- This thing
-σ+ : Γ ⇉ Δ → Γ , A ⇉ Δ , A
-σ+ σ = (p ◦ σ) • {!   !}
+-- σ+ : Γ ⇉ Δ → Γ , A ⇉ Δ , A
+-- σ+ σ = (p ◦ σ) • {!   !}
 
-sub-refl : Γ ⇉ Γ
-sub-refl {∅}     = ε
-sub-refl {Γ , x} = σ+ sub-refl
-sub-refl {Γ ■}   = sub-refl •■
+-- sub-refl : Γ ⇉ Γ
+-- sub-refl {∅}     = ε
+-- sub-refl {Γ , x} = σ+ sub-refl
+-- sub-refl {Γ ■}   = sub-refl •■
 
 -- Useful lemma for proofs involving the unbox constructor.
 -- ... since extensions of this type are produced by it,
@@ -94,6 +119,15 @@ sub-refl {Γ ■}   = sub-refl •■
 -- sub-←■ is-nil        (sub-lock sub)    | _           = sub
 -- sub-←■ (is-ext ext₁) (sub-keep sub)    | is-ext ext₂ = sub-←■ ext₁ sub
 -- sub-←■ (is-ext ext₁) (sub-subs sub t)  | ext₂        = sub-←■ ext₁ sub
+
+-- Substitution v2
+-- sub : Γ ⇉ Δ → Δ ⊢ A → Γ ⊢ A
+-- sub σ (nat x) = nat x
+-- sub σ (var x) = {!   !}
+-- sub σ (ƛ t) = {!   !}
+-- sub σ (box t) = box (sub (σ •■) t)
+-- sub σ (unbox t) = {!   !}
+-- sub σ (l ∙ r) = sub σ l ∙ sub σ r
 
 -- Parallel substitution!
 -- sub : Sub Γ Δ → Γ ⊢ A → Δ ⊢ A
@@ -169,4 +203,4 @@ sub-refl {Γ ■}   = sub-refl •■
 -- sub-refl-id-var (var Z)     refl = refl
 -- sub-refl-id-var (var (S x)) refl 
 --     rewrite sub-refl-id-var (var x) refl | ⊆-refl-id x = refl
-    
+      
