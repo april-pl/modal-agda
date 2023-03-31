@@ -66,3 +66,5 @@ weakening~ wk (sim-lam sim)        = sim-lam (weakening~ (⊆-keep wk) sim)
 weakening~ wk (sim-box sim)        = sim-box (weakening~ (⊆-lock wk) sim)
 weakening~ wk (sim-unbox {t = t₁} {t₂} {□ext = ext} sim) with sit _ _ sim
 ... | refl = sim-lock (is∷-Δweak ext wk) (weakening wk (unbox t₁)) (weakening wk (unbox t₂)) 
+
+-- Simulation extended pointwise to substitutions
