@@ -25,7 +25,7 @@ factorExt ~ wkLFExt ~ is∷Δweak
 infixr 3 _⇉_
 infixr 4 _•■
 infixr 4 _•_
--- The type of substitutions, done properly this time
+
 data _⇉_ : Context → Context → Set where
     -- Base substitution
     ε : Γ ⇉ ∅
@@ -35,15 +35,18 @@ data _⇉_ : Context → Context → Set where
     -- Under locks
     _•■ : Γ ⇉ Δ         → Γ ■ ⇉ Δ ■
     -- Extend a substitution with a term
-    _•_ : Γ ⇉ Δ → Δ ⊢ A → Γ ⇉ Δ , A
+    _•_ : Γ ⇉ Δ → Γ ⊢ A → Γ ⇉ Δ , A
     -- Compose substitutions
-    _◦_ : Γ ⇉ Δ → Δ ⇉ θ → Γ ⇉ θ
+    _◦_ : Δ ⇉ θ → Γ ⇉ Δ → Γ ⇉ θ
 
--- q : Context → 
+-- f : Γ ⇉ Δ → A ∈ Δ → Γ ⊢ A
+-- f p x = var (S x)
+-- f (σ • t) Z = f σ x
+-- f (σ • t) (S x) = {! (f σ x) ? !}
+-- f (σ ◦ τ) x = {!   !}
 
--- This thing
 σ+ : Γ ⇉ Δ → Γ , A ⇉ Δ , A
-σ+ σ = (p ◦ σ) • {!   !}
+σ+ {Δ} σ = (σ ◦ p) • var Z
 
 sub-refl : Γ ⇉ Γ
 sub-refl {∅}     = ε
@@ -54,8 +57,12 @@ sub-refl {Γ ■}   = sub-refl •■
 -- ... since extensions of this type are produced by it,
 -- and we need one in order to put everyhting back together again.
 -- is∷-Δsub : Γ is Γ₁ ■ ∷ Γ₂ → Γ ⇉ Δ → Δ is (←■ Δ) ■ ∷ (■→ Δ)
+-- is∷-Δsub ext ε = {!   !}
+-- is∷-Δsub ext p = {!   !}
+-- is∷-Δsub ext (σ •■)  = is-nil
+-- is∷-Δsub ext (σ • x) = is-ext (is∷-Δsub ext σ)
+-- is∷-Δsub ext (σ ◦ τ) = is∷-Δsub (is∷-ΔsubSc ext τ) σ
 
--- is∷-Δsub ext (sub ◦ sub₁) = {!   !}
 -- is∷-Δsub : Γ is Γ₁ ■ ∷ Γ₂ → Sub Γ Δ → Δ is (←■ Δ) ■ ∷ (■→ Δ)
 -- is∷-Δsub ext          (sub-lock sub)   = is-nil
 -- is∷-Δsub is-nil       sub-weak         = is-ext is-nil
@@ -96,7 +103,18 @@ sub-refl {Γ ■}   = sub-refl •■
 -- sub-←■ (is-ext ext₁) (sub-subs sub t)  | ext₂        = sub-←■ ext₁ sub
 
 -- Parallel substitution!
--- sub : Sub Γ Δ → Γ ⊢ A → Δ ⊢ A
+sub : Γ ⇉ Δ → Δ ⊢ A → Γ ⊢ A
+sub σ (nat x) = nat x
+-------------------------
+sub p (var Z) = var (S Z)
+sub (σ • t) (var Z) = t
+sub (σ ◦ τ) (var Z) = {!   !}
+sub σ (var (S x)) = sub (p ◦ σ) (var x)
+---------------------------------------
+sub σ (ƛ t) = {!   !}
+sub σ (box t) = {!   !}
+sub σ (unbox t) = {!   !}
+sub σ (l ∙ r) = {!   !}
 -- sub σ (nat x) = nat x
 -- --------------------------------
 -- sub sub-weak       (var Z)     = var (S Z)
@@ -169,4 +187,4 @@ sub-refl {Γ ■}   = sub-refl •■
 -- sub-refl-id-var (var Z)     refl = refl
 -- sub-refl-id-var (var (S x)) refl 
 --     rewrite sub-refl-id-var (var x) refl | ⊆-refl-id x = refl
-    
+     
