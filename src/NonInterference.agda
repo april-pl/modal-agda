@@ -41,13 +41,20 @@ open lemmas
 
 -- The indistinguishability under substitution lemma.
 -- God, this is disgusting, isn't it?
-ius : (t₁ t₂ : Γ ⊢ A)
-    → (σ : Sub Γ Δ)
-    -----------------------------------
-    → Γ ⊢ t₁         ~ t₂         ∶ A 
-    -----------------------------------
-    → Δ ⊢ (sub σ t₁) ~ (sub σ t₂) ∶ A
-ius = {!   !}
+ius : ¬■ Γ 
+    → (t₁ t₂ : Γ ⊢ A)
+    → (σ₁ σ₂ : Sub Γ Δ)
+    ----------------------------------------
+    → Γ     ⊢  t₁          ~ t₂          ∶ A 
+    → Γ , Δ ⊢σ σ₁          ~ σ₂ 
+    ----------------------------------------
+    → Δ     ⊢  (sub σ₁ t₁) ~ (sub σ₂ t₂) ∶ A
+ius prf t₁ t₂ .sub-base .sub-base sim simσ-base = ?
+ius prf t₁ t₂ .(sub-keep _) .(sub-keep _) sim (simσ-keep simσ) = ?
+ius prf t₁ t₂ .(sub-subs _ _) .(sub-subs _ _) sim (simσ-subs simσ x) = ?
+ius prf t₁ t₂ .(sub-trim _ wk) .(sub-trim _ wk) sim (simσ-trim simσ wk) = ?
+
+
 -- ius _ t₁ t₂ a₁ a₂ (sim-lock (is-ext ext) _ _) sim₂ = sim-lock ext (t₁ [ a₁ ]) (t₂ [ a₂ ])
 -- ---------------------------------------------------------------------------------------
 -- ius _ t₁ t₂ a₁ a₂ (sim-var Z)     sim₂ = sim₂
@@ -109,3 +116,4 @@ ni prf sim@(sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξ
            ، ξappr βr₂ 
            ، sim-app simₗ ind
            
+ 

@@ -146,6 +146,12 @@ sub-refl-id-var (var Z)     refl = refl
 sub-refl-id-var (var (S x)) refl 
     rewrite sub-refl-id-var (var x) refl | ⊆-refl-id x = refl
 
+sub-base-id : (t : ∅ ⊢ A) → sub sub-base t ≡ t
+sub-base-id (nat x) = refl
+sub-base-id (ƛ t)  = {!   !}
+sub-base-id (box t) = {!   !}
+sub-base-id (l ∙ r) = {!   !}
+
 -- sub-refl-id {Γ = Γ , B} (var Z)     = refl
 -- sub-refl-id {Γ = Γ , B} (var (S x)) rewrite sub-refl-id (var x) | ⊆-refl-id x = refl
 

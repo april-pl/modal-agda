@@ -11,8 +11,9 @@ open import Subst
 
 private variable
     t t′ t₁ t₂ t₁′ t₂′ a a₁ a₂ a′ b b₁ b₂ b′ : _ ⊢ _
+    σ σ₁ σ₂ : Sub _ _
     A B : Type
-    Γ Δ Γ₁ Γ₂ : Context
+    Γ Γ′ Δ Δ′ Γ₁ Γ₂  : Context
     □ext : Γ is Γ₁ ■ ∷ Γ₂
 
 infix 2 _⊢_~_∶_
@@ -66,3 +67,30 @@ weakening~ wk (sim-lam sim)        = sim-lam (weakening~ (⊆-keep wk) sim)
 weakening~ wk (sim-box sim)        = sim-box (weakening~ (⊆-lock wk) sim)
 weakening~ wk (sim-unbox {t = t₁} {t₂} {□ext = ext} sim) with sit _ _ sim
 ... | refl = sim-lock (is∷-Δweak ext wk) (weakening wk (unbox t₁)) (weakening wk (unbox t₂)) 
+
+-- Simulation, extended pointwise to substitutions
+infix 2 _,_⊢σ_~_
+data _,_⊢σ_~_ : (Γ Δ : Context) → Sub Γ Δ → Sub Γ Δ → Set where
+    simσ-base : ∅ , ∅ ⊢σ sub-base ~ sub-base
+
+    simσ-lock : Γ   , Δ   ⊢σ σ₁            ~ σ₂
+              --------------------------------------
+              → Γ ■ , Δ ■ ⊢σ (sub-lock σ₁) ~ (sub-lock σ₂)
+
+    simσ-keep : Γ       , Δ       ⊢σ σ₁            ~ σ₂
+              ----------------------------------------------------
+              → (Γ , A) , (Δ , A) ⊢σ (sub-keep σ₁) ~ (sub-keep σ₂) 
+
+    simσ-subs : Γ       , Δ ⊢σ σ₁               ~ σ₂
+              → Δ           ⊢  t₁               ~ t₂ ∶ B
+              ----------------------------------------------------
+              → (Γ , B) , Δ ⊢σ (sub-subs σ₁ t₁) ~ (sub-subs σ₂ t₂)
+
+    simσ-trim : Γ , Δ ⊢σ σ₁ ~ σ₂
+              → (wk : Δ ⊆ Δ′)
+              -----------------------------------------------
+              → Γ , Δ′ ⊢σ (sub-trim σ₁ wk) ~ (sub-trim σ₂ wk)
+
+
+
+    
