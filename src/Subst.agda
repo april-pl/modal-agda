@@ -33,15 +33,18 @@ _⇉_ : Context → Context → Set
 ε : Γ ⇉ ∅
 ε = λ ()
 
-_•■ : Γ ⇉ Δ → Γ ■ ⇉ Δ ■
-σ •■ = λ ()
-
 p : Γ , A ⇉ Γ 
 p x = var (S x)
 
-_•_ : Γ ⇉ Δ → Δ ⊢ A → Γ ⇉ Δ , A
-(σ₁ • t) Z = {!   !}
-(σ₁ • t) (S x) = σ₁ x
+_•■ : Γ ⇉ Δ → Γ ■ ⇉ Δ ■
+σ •■ = λ ()
+
+_•_ : Γ ⇉ Δ → Γ ⊢ A → Γ ⇉ Δ , A
+(σ • t) Z     = t
+(σ • t) (S x) = σ x
+
+_◦_ : Δ ⇉ θ → Γ ⇉ Δ → Γ ⇉ θ
+(σ ◦ τ) x = τ {!   !}
 
 
 
@@ -50,13 +53,14 @@ _•_ : Γ ⇉ Δ → Δ ⊢ A → Γ ⇉ Δ , A
 --     -- Base substitution
 --     ε : Γ ⇉ ∅
 --     -- Weaken a substitution
+--     p : Γ , A ⇉ Γ 
 
 --     -- Under locks
 --     _•■ : Γ ⇉ Δ         → Γ ■ ⇉ Δ ■
 --     -- Extend a substitution with a term
---     _•_ : Γ ⇉ Δ → Δ ⊢ A → Γ ⇉ Δ , A
+--     _•_ : Γ ⇉ Δ → Γ ⊢ A → Γ ⇉ Δ , A
 --     -- Compose substitutions
---     _◦_ : Γ ⇉ Δ → Δ ⇉ θ → Γ ⇉ θ
+--     _◦_ : Δ ⇉ θ → Γ ⇉ Δ → Γ ⇉ θ
 
 -- f : Γ ⇉ Δ → A ∈ Δ → Γ ⊢ A
 -- f p x = var (S x)
