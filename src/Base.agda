@@ -5,7 +5,7 @@ open import Data.Bool
 open import Data.Empty
 open import Data.Unit
 open import Relation.Binary.PropositionalEquality
-open import Data.Product renaming (_,_ to Prod)
+open import Data.Product renaming (_,_ to _،_)
 
 infixr 7 _⇒_
 -- Modal type constructors.
@@ -41,7 +41,7 @@ data Context : Set where
 
 private variable
     A B : Type
-    Γ Δ Γ₁ Γ₂ Γ₃ : Context
+    Γ Γ′ Δ Δ′ Γ₁ Γ₂ Γ₃ : Context
 
 infixl 4 _∷_
 -- -- Context combination.
@@ -106,6 +106,25 @@ data _⊆_ : Context → Context → Set where
     ⊆-drop  : Γ ⊆ Δ → Γ     ⊆ Δ , A
     ⊆-keep  : Γ ⊆ Δ → Γ , A ⊆ Δ , A
     ⊆-lock  : Γ ⊆ Δ → Γ ■   ⊆ Δ ■
+
+-- ∅⊆Γ : ∅ ⊆ Γ
+-- ∅⊆Γ {∅} = ⊆-empty
+-- ∅⊆Γ {Γ , x} = ⊆-drop ∅⊆Γ
+-- ∅⊆Γ {Γ ■} = {!   !}
+
+⊆∅ : Γ ⊆ ∅ → Γ ≡ ∅
+⊆∅ {∅} wk = refl
+⊆∅ {Γ , x} ()
+⊆∅ {Γ ■}   ()
+
+-- A stronger version of this exists in LFExt
+■⊆ : Γ ■ ⊆ Δ → Σ[ Δ₁ ∈ Context ] Σ[ Δ₂ ∈ Context ] Δ ≡ (Δ₁ ■ ∷ Δ₂)
+■⊆ {_} {(Δ ■)}   (⊆-lock wk) = Δ ، ∅ ، refl
+■⊆ {_} {(Δ , B)} (⊆-drop wk) with ■⊆ wk
+... | Δ₁ ، Δ₂ ، refl = Δ₁ ، Δ₂ , B ، refl
+
+⊆■ : Γ ⊆ Δ ■ → Σ[ Γ′ ∈ Context ] Γ ≡ (Γ′ ■)
+⊆■ {(Γ′ ■)} (⊆-lock wk) = Γ′ ، refl
 
 -- I wrote this entire thing using auto.
 ⊆-assoc : Γ₁ ⊆ Γ₂ → Γ₂ ⊆ Γ₃ → Γ₁ ⊆ Γ₃

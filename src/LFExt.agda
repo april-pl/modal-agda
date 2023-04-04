@@ -6,7 +6,7 @@ open import Data.Bool
 open import Data.Empty
 open import Data.Unit
 open import Relation.Binary.PropositionalEquality
-open import Data.Product renaming (_,_ to _⸲_)
+open import Data.Product renaming (_,_ to _،_)
 
 private variable
     A B : Type
@@ -53,18 +53,18 @@ is∷-¬■Γ (is-ext ext) = ¬■, (is∷-¬■Γ ext)
 
 -- Match on a context that has an inclusion
 is∷-∈ : A ∈ Γ → Σ[ Γ₁ ∈ Context ] Σ[ Γ₂ ∈ Context ] Γ is Γ₁ , A ∷ Γ₂
-is∷-∈ {Γ = Γ′ , A} Z = Γ′ ⸲ ∅ ⸲ is-nil
+is∷-∈ {Γ = Γ′ , A} Z = Γ′ ، ∅ ، is-nil
 is∷-∈ {Γ = Γ′ , B} (S x) with is∷-∈ x
-... | Γ₁ ⸲ ∅        ⸲ is-nil     = Γ₁ ⸲ (∅ , B)      ⸲ is-ext is-nil
-... | Γ₁ ⸲ (Γ₂ , C) ⸲ is-ext ext = Γ₁ ⸲ (Γ₂ , C , B) ⸲ is-ext (is-ext ext)
+... | Γ₁ ، ∅        ، is-nil     = Γ₁ ، (∅ , B)      ، is-ext is-nil
+... | Γ₁ ، (Γ₂ , C) ، is-ext ext = Γ₁ ، (Γ₂ , C , B) ، is-ext (is-ext ext)
 
 -- Match on a context that ends in cons.
 is∷-■, : Γ , A is Γ₁ ■ ∷ Γ₂ → Σ[ Γ₃ ∈ Context ] Γ₂ ≡ Γ₃ , A
-is∷-■, {Γ₂ = Γ₂ , x} (is-ext ext) = Γ₂ ⸲ refl
+is∷-■, {Γ₂ = Γ₂ , x} (is-ext ext) = Γ₂ ، refl
 
 -- Syntax for extension when Γ ends with a lock
 is∷-Γ■ : Γ ■ is Γ₁ ∷ Γ₂ → (Γ ■ ≡ Γ₁) × (Γ₂ ≡ ∅)
-is∷-Γ■ ext = is∷-Γ■-≡ ext ⸲ is∷-Γ■-∅ ext
+is∷-Γ■ ext = is∷-Γ■-≡ ext ، is∷-Γ■-∅ ext
     where
     is∷-Γ■-∅ : Γ ■ is Γ₁ ∷ Γ₂ → Γ₂ ≡ ∅ 
     is∷-Γ■-∅ {Γ₂ = ∅} ex = refl
@@ -72,6 +72,12 @@ is∷-Γ■ ext = is∷-Γ■-≡ ext ⸲ is∷-Γ■-∅ ext
     is∷-Γ■-≡ : Γ ■ is Γ₁ ∷ Γ₂ → Γ ■ ≡ Γ₁ 
     is∷-Γ■-≡ {Γ₁ = Γ₁} ext with is∷-Γ■-∅ ext 
     ... | refl = is∷-Γ₂≡∅ ext
+
+-- A stronger version of a theorem in Base
+■⊆′ : Γ ■ ⊆ Δ → Σ[ Δ₁ ∈ Context ] Σ[ Δ₂ ∈ Context ] Δ is Δ₁ ■ ∷ Δ₂
+■⊆′ {_} {(Δ ■)}   (⊆-lock wk) = Δ ، ∅ ، is-nil
+■⊆′ {_} {(Δ , B)} (⊆-drop wk) with ■⊆′ wk
+... | Δ₁ ، Δ₂ ، ext = Δ₁ ، Δ₂ , B ، is-ext ext
 
 -- Extensions are congruent under the left-of-lock operation ←■
 is∷-←■weak : Γ is Γ₁ ■ ∷ Γ₂ → Γ ⊆ Δ → Γ₁ ⊆ ←■ Δ
