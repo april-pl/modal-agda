@@ -125,10 +125,11 @@ data _⊆_ : Context → Context → Set where
 
 ⊆■ : Γ ⊆ Δ ■ → Σ[ Γ′ ∈ Context ] Γ ≡ (Γ′ ■)
 ⊆■ {(Γ′ ■)} (⊆-lock wk) = Γ′ ، refl
+-- ⊆■ {_}      ⊆-empty     = {!   !} ، {!   !}
 
 -- I wrote this entire thing using auto.
 ⊆-assoc : Γ₁ ⊆ Γ₂ → Γ₂ ⊆ Γ₃ → Γ₁ ⊆ Γ₃
-⊆-assoc ⊆-empty wk₂      = wk₂
+⊆-assoc ⊆-empty wk₂               = wk₂
 ⊆-assoc (⊆-drop wk₁) (⊆-drop wk₂) = ⊆-drop (⊆-assoc (⊆-drop wk₁) wk₂)
 ⊆-assoc (⊆-drop wk₁) (⊆-keep wk₂) = ⊆-drop (⊆-assoc wk₁ wk₂)
 ⊆-assoc (⊆-keep wk₁) (⊆-drop wk₂) = ⊆-drop (⊆-assoc (⊆-keep wk₁) wk₂)
