@@ -42,7 +42,7 @@ open lemmas
 -- The indistinguishability under substitution lemma.
 -- God, this is disgusting, isn't it?
 ius : (t₁ t₂ : Γ ⊢ A)
-    → (σ : Sub Γ Δ)
+    → (σ : Δ ⇉ Γ)
     -----------------------------------
     → Γ ⊢ t₁         ~ t₂         ∶ A 
     -----------------------------------
@@ -68,9 +68,6 @@ ius = {!   !}
 -- ... | refl = sim-box (sim-lock is-nil (sub (sub-lock (sub-subs sub-refl a₁)) b₁)
 --                                       (sub (sub-lock (sub-subs sub-refl a₂)) b₂))
 
-module inversions where
-    -- inv-∙l : 
-open inversions
 
 -- Non-interference for the Fitch calculus
 ni : ¬■ Γ

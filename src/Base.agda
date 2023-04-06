@@ -123,8 +123,8 @@ data _⊆_ : Context → Context → Set where
 ■⊆ {_} {(Δ , B)} (⊆-drop wk) with ■⊆ wk
 ... | Δ₁ ، Δ₂ ، refl = Δ₁ ، Δ₂ , B ، refl
 
-⊆■ : Γ ⊆ Δ ■ → Σ[ Γ′ ∈ Context ] Γ ≡ (Γ′ ■)
-⊆■ {(Γ′ ■)} (⊆-lock wk) = Γ′ ، refl
+-- ⊆■ : Γ ⊆ Δ ■ → Σ[ Γ′ ∈ Context ] Γ ≡ (Γ′ ■)
+-- ⊆■ {(Γ′ ■)} (⊆-lock wk) = Γ′ ، refl
 -- ⊆■ {_}      ⊆-empty     = {!   !} ، {!   !}
 
 -- I wrote this entire thing using auto.
@@ -141,6 +141,12 @@ data _⊆_ : Context → Context → Set where
 ⊆-refl {Γ = Γ , x} = ⊆-keep ⊆-refl
 ⊆-refl {Γ = Γ ■}   = ⊆-lock ⊆-refl
 ⊆-refl {Γ = ∅}     = ⊆-empty
+
+⊆-←■ : Γ ⊆ Δ → ←■ Γ ⊆ ←■ Δ
+⊆-←■ ⊆-empty     = ⊆-empty
+⊆-←■ (⊆-drop wk) = ⊆-←■ wk
+⊆-←■ (⊆-keep wk) = ⊆-←■ wk
+⊆-←■ (⊆-lock wk) = wk
 
 -- private lemma-weak : (Γ : Context) → Γ , A ⊆ Δ → Γ ⊆ Δ
 -- lemma-weak ∅ wk = {!   !}
@@ -182,4 +188,4 @@ data _⊆_ : Context → Context → Set where
 Γ-weak : Γ ⊆ Δ → A ∈ Γ → A ∈ Δ 
 Γ-weak (⊆-drop rest) x     = S (Γ-weak rest x)
 Γ-weak (⊆-keep rest) (S x) = S (Γ-weak rest x)
-Γ-weak (⊆-keep rest) Z     = Z
+Γ-weak (⊆-keep rest) Z     = Z 

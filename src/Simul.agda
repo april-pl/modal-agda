@@ -12,8 +12,9 @@ open import Subst
 private variable
     t t′ t₁ t₂ t₁′ t₂′ a a₁ a₂ a′ b b₁ b₂ b′ : _ ⊢ _
     A B : Type
-    Γ Δ Γ₁ Γ₂ : Context
+    Γ Γ′ Δ Γ₁ Γ₂ : Context
     □ext : Γ is Γ₁ ■ ∷ Γ₂
+    σ σ₁ σ₂ τ : _ ⇉ _
 
 infix 2 _⊢_~_∶_
 data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → Set where
@@ -56,15 +57,26 @@ sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂
 sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
 ... | refl = refl
 
-weakening~ : (wk : Γ ⊆ Δ) 
+weakening~ : (w : Γ ⊆ Δ) 
            → Γ ⊢ t₁ ~ t₂ ∶ A 
-           → Δ ⊢ (weakening wk t₁) ~ (weakening wk t₂) ∶ A
-weakening~ wk (sim-lock ext t₁ t₂) = sim-lock (is∷-Δweak ext wk) (weakening wk t₁) (weakening wk t₂)
-weakening~ wk (sim-var x)          = sim-var (Γ-weak wk x)
-weakening~ wk (sim-app simₗ simᵣ)  = sim-app (weakening~ wk simₗ) (weakening~ wk simᵣ)
-weakening~ wk (sim-lam sim)        = sim-lam (weakening~ (⊆-keep wk) sim)
-weakening~ wk (sim-box sim)        = sim-box (weakening~ (⊆-lock wk) sim)
-weakening~ wk (sim-unbox {t = t₁} {t₂} {□ext = ext} sim) with sit _ _ sim
-... | refl = sim-lock (is∷-Δweak ext wk) (weakening wk (unbox t₁)) (weakening wk (unbox t₂)) 
+           → Δ ⊢ (weakening w t₁) ~ (weakening w t₂) ∶ A
+weakening~ w (sim-lock ext t₁ t₂) = sim-lock (is∷-Δweak ext w) (weakening w t₁) (weakening w t₂)
+weakening~ w (sim-var x)          = sim-var  (Γ-weak w x)
+weakening~ w (sim-app simₗ simᵣ)  = sim-app  (weakening~ w simₗ) (weakening~ w simᵣ)
+weakening~ w (sim-lam sim)        = sim-lam  (weakening~ (⊆-keep w) sim)
+weakening~ w (sim-box sim)        = sim-box  (weakening~ (⊆-lock w) sim)
+weakening~ w (sim-unbox {t = t₁} {t₂} {□ext = ext} sim) with sit _ _ sim
+... | refl = sim-lock (is∷-Δweak ext w) (weakening w (unbox t₁)) (weakening w (unbox t₂)) 
 
 -- Simulation extended pointwise to substitutions
+infix 2 _,_⊢_~_
+data _,_⊢_~_ : (Γ Δ : Context) → Γ ⇉ Δ → Γ ⇉ Δ → Set where
+    simσ-ε : Γ , ∅ ⊢ ε ~ ε
+
+    simσ-p : (w : Γ ⊆ Γ′)
+           --------------
+           → Γ′ , Γ ⊢ wk w ~ wk w
+
+    simσ-■ : Γ   , Δ   ⊢ σ    ~ τ 
+           -------------------------
+           → Γ ■ , Δ ■ ⊢ σ •■ ~ τ •■ 

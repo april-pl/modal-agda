@@ -48,203 +48,77 @@ p = wk (⊆-drop ⊆-refl)
 ⇉-st (σ • x) (⊆-drop w) = ⇉-st σ w
 ⇉-st (σ • x) (⊆-keep w) = ⇉-st σ w • x
 
-transport : {A B : Set} → A → A ≡ B → B
-transport x refl = x
+⇉-refl : Γ ⇉ Γ
+⇉-refl {∅}     = ε
+⇉-refl {Γ ■}   = ⇉-refl •■
+⇉-refl {Γ , x} = p • var Z
 
+-- Useful lemma for proofs involving the unbox constructor.
+-- ... since extensions of this type are produced by it,
+-- and we need one in order to put everyhting back together again.
+is∷-Δsub : Δ is Δ₁ ■ ∷ Δ₂ → Γ ⇉ Δ → Γ is (←■ Γ) ■ ∷ (■→ Γ)
+is∷-Δsub is-nil (wk (⊆-drop w))       = is-ext (is∷-Δsub is-nil (wk w))
+is∷-Δsub is-nil (wk (⊆-lock w))       = is-nil
+is∷-Δsub is-nil (σ •■)                = is-nil
+is∷-Δsub (is-ext ext) (wk (⊆-drop w)) = is-ext (is∷-Δsub (is-ext ext) (wk w))
+is∷-Δsub (is-ext ext) (wk (⊆-keep w)) = is-ext (is∷-Δsub ext (wk w))
+is∷-Δsub (is-ext ext) (σ • t)         = is∷-Δsub ext σ
+
+-- Much like before. This gives us a substitution that...
+-- ... only works left of a lock, from one produced by unbox.
+-- Γ   is   (Γ₁) ■ ∷ Γ₂
+-- ↓         ↓↓
+-- Δ   is   (Δ₁) ■ ∷ Γ₂
+sub-←■ : Δ is Δ₁ ■ ∷ Δ₂ → Γ ⇉ Δ → (←■ Γ) ⇉ Δ₁
+sub-←■ is-nil (wk w) with ■⊆′ w 
+... | Γ₁ ، Γ₂ ، ext  with is∷-←■ ext
+... | refl           = wk (⊆-←■ w)
+sub-←■ is-nil (σ •■) = σ
+sub-←■ (is-ext ext) (wk w) with is∷-←■ ext
+... | refl = wk (⊆-←■ w) 
+sub-←■ (is-ext ext) (σ • x) = sub-←■ ext σ
+
+-- I hate to do this but this is fairly theoretically grounded so it feels OK
 {-# TERMINATING #-}
 mutual 
-    -- Idea - there is a lock in Γ and we can do that case
-    -- Otherwise we just recurse and tag stuff onto the end which we can do
     _◦_ : Δ ⇉ θ → Γ ⇉ Δ → Γ ⇉ θ
     sub : Γ ⇉ Δ → Δ ⊢ A → Γ ⊢ A
-    is∷-Δsub : Δ is Δ₁ ■ ∷ Δ₂ → Γ ⇉ Δ → Γ is (←■ Γ) ■ ∷ (■→ Γ)
-    is∷-Δsub ext (wk w) = {!  !}
-    is∷-Δsub ext (σ •■) = is-nil
-    is∷-Δsub ext (σ • x) = {!   !}
-    -- Much like before. This gives us a substitution that...
-    -- ... only works left of a lock, from one produced by unbox.
-    -- Γ   is   (Γ₁) ■ ∷ Γ₂
-    -- ↓         ↓↓
-    -- Δ   is   (Δ₁) ■ ∷ Γ₂
-    sub-←■ : Δ is Δ₁ ■ ∷ Δ₂ → Γ ⇉ Δ → (←■ Γ) ⇉ Δ₁
-    sub-←■ = {!   !}
-    -- sub-←■ is-nil (wk w) with ■⊆′ w
-    -- ... | Γ₁ ، Γ₂ ، ext  with is∷-Δsub ext (wk {!   !})
-    -- ... | a              = wk {!   !}k
 
-    -- given σ : Γ -> Δ, LOCK there exists Γ' and σ' : Γ -> Δ such that σ = σ', LOCK
-    -- ⇉■ : (σ : Γ ⇉ Δ ■) → Σ[ Γ′ ∈ Context ] Σ[ p ∈ Γ ≡ Γ′ ■ ] Σ[ σ′ ∈ Γ′ ⇉ Δ ] (subst (λ{Γ → Γ ⇉ Δ ■}) p σ) ≡ (σ′ •■)
-    -- ⇉■ {Γ = Γ}    (wk x) = {!   !} ، {!   !} ، {!   !} ، {!   !}
-    -- ⇉■ {Γ = Γ₁ ■} (σ •■) = Γ₁ ، refl ، σ ، refl
+    σ+  : Γ ⇉ Δ → Γ , A ⇉ Δ , A
+    σ+ σ = (σ ◦ p) • (var Z)
 
-    -- ⇉■ : 
-    
-    -- Parallel substitution!
+    -- Parallel substitution, defined recursively with composition
     sub σ (nat x) = nat x
     -------------------------
     sub (wk w)  (var Z)     = var (Γ-weak w Z)
     sub (σ • t) (var Z)     = t
     sub σ       (var (S x)) = sub (p ◦ σ) (var x)
     ---------------------------------------
-    sub σ (ƛ t)   = ƛ sub ((σ ◦ p) • var Z) t
+    sub σ (ƛ t)   = ƛ sub (σ+ σ) t
     sub σ (box t) = box (sub (σ •■) t)
     sub σ (l ∙ r) = sub σ l ∙ sub σ r
     -------------------------------------------------
     sub σ (unbox {ext = e} t) = unbox {ext = is∷-Δsub e σ} (sub (sub-←■ e σ) t)
     
-
     -- Compose substitutions
     ε       ◦ τ = ε
     wk w    ◦ τ = ⇉-st τ w
-    
     (σ • t) ◦ τ         = (σ ◦ τ) • sub τ t
-
-    (σ •■) ◦ wk w with ■⊆′ w | w
+    (σ •■)  ◦ wk w with ■⊆′ w | w
     ... | Γ₁  ، ∅ ، is-nil     | ⊆-lock w = (σ ◦ wk w) •■
-    ...| _   ، _ ، is-ext ext | w        = (σ •■) ◦ wk w
+    ... | _   ، _ ، is-ext ext | w        = (σ •■) ◦ wk w
     (σ •■) ◦ (τ •■) = (σ ◦ τ) •■
 
+sub-refl : Γ ⇉ Γ
+sub-refl {∅}     = ε
+sub-refl {Γ , x} = σ+ sub-refl
+sub-refl {Γ ■}   = sub-refl •■
 
--- ε       ◦ τ              = ε
-
--- wk w    ◦ ε rewrite ⊆∅ w = ε
--- wk w    ◦ wk x           = wk (⊆-assoc w x)
--- wk w    ◦ (τ •■)         with ⊆■ w | w
--- wk w    ◦ (τ •■)         | θ′ ، refl | ⊆-lock a = wk {!  !} •■
--- wk (⊆-drop w) ◦ (τ • x) = ⇉-st τ w
--- wk (⊆-keep w) ◦ (τ • x) = (wk w ◦ τ) • x
-
--- (σ • x) ◦ ε = {! σ !}
--- (σ • x) ◦ wk w = {!   !}
--- (σ • x) ◦ (τ •■) = {!   !}
--- (σ • x) ◦ (τ • x₁) = {!   !}
-
--- (σ •■) ◦ wk w   = {! !}
--- (σ •■) ◦ (τ •■) = (σ ◦ τ) •■
-
--- _◦_ : Δ ⇉ θ → Γ ⇉ Δ → Γ ⇉ θ
--- ε ◦ ε = {!   !} ◦ {!   !}
--- (σ • x) ◦ ε = {!   !} ◦ {!   !}
-
--- σ ◦ p = {!   !}
--- ε ◦ (τ •■) = {!   !}
--- σ ◦ (τ • x) = {!   !}
-
--- (σ •■) ◦ (τ •■) = (σ ◦ τ) •■
--- (σ • x) ◦ (τ •■) = {!   !}
-
-
--- -- f : Γ ⇉ Δ → A ∈ Δ → Γ ⊢ A
--- -- f p x = var (S x)
--- -- f (σ • t) Z = f σ x
--- -- f (σ • t) (S x) = {! (f σ x) ? !}
-
-
-
--- sub-refl : Γ ⇉ Γ
--- sub-refl {∅}     = ε
--- sub-refl {Γ , x} = σ+ sub-refl
--- sub-refl {Γ ■}   = sub-refl •■
-
--- Useful lemma for proofs involving the unbox constructor.
--- ... since extensions of this type are produced by it,
--- and we need one in order to put everyhting back together again.
-
-
--- -- is∷-Δsub ext ε = {!   !}
--- -- is∷-Δsub ext p = {!   !}
--- -- is∷-Δsub ext (σ •■)  = is-nil
--- -- is∷-Δsub ext (σ • x) = is-ext (is∷-Δsub ext σ)
--- -- is∷-Δsub ext (σ ◦ τ) = is∷-Δsub (is∷-Δsub ext τ) σ
-
--- -- is∷-Δsub : Γ is Γ₁ ■ ∷ Γ₂ → Sub Γ Δ → Δ is (←■ Δ) ■ ∷ (■→ Δ)
--- -- is∷-Δsub ext          (sub-lock sub)   = is-nil
--- -- is∷-Δsub is-nil       sub-weak         = is-ext is-nil
--- -- is∷-Δsub (is-ext ext) sub-weak         = is-ext (is∷-Δsub ext sub-weak)
--- -- is∷-Δsub (is-ext ext) (sub-extn sub x) = is∷-Δsub ext sub
-
--- private module lemmas where
---     -- lemma-σ-var : Γ ⇉ Δ → A ∈ Δ → A ∈ Γ
---     -- lemma-σ-var p x = S x
---     -- lemma-σ-var (σ • t) Z = {!   !}
---     -- lemma-σ-var (σ • t) (S x) = lemma-σ-var σ x
---     -- lemma-σ-var (σ ◦ τ) x = {!   !}
-
--- --     -- Weakening is congruent with the left-of-lock operation
---     lemma-⊆-←■ : Γ ⊆ Δ → ←■ Γ ⊆ ←■ Δ 
---     lemma-⊆-←■ ⊆-empty     = ⊆-empty
---     lemma-⊆-←■ (⊆-drop wk) = lemma-⊆-←■ wk
---     lemma-⊆-←■ (⊆-keep wk) = lemma-⊆-←■ wk
---     lemma-⊆-←■ (⊆-lock wk) = wk
-
---     -- Same as the above, but through substitutions
---     lemma-sub : Δ ⊆ Δ′ → ←■ Δ ⇉ Γ → ←■ Δ′ ⇉ Γ
---     lemma-sub ⊆-empty     sub = sub
---     lemma-sub (⊆-drop wk) sub = lemma-sub wk sub
---     lemma-sub (⊆-keep wk) sub = lemma-sub wk sub
---     lemma-sub (⊆-lock wk) sub = {!  !}
-
--- --     lemma-, = is∷-■,
-
--- open lemmas
-
-
-
--- sub-←■ (is-ext ext) (wk (⊆-drop x)) = 
---     let rec = sub-←■ ext (wk {!   !}) 
---     in {!   !}
--- sub-←■ (is-ext ext) (wk (⊆-keep x)) = sub-←■ ext (wk x)
--- sub-←■ is-nil (σ •■) = σ
--- sub-←■ (is-ext ext) (σ • x) = sub-←■ ext σ
-
--- -- sub-←■ : Γ is Γ₁ ■ ∷ Γ₂ → Sub Γ Δ → Sub Γ₁ (←■ Δ)
--- -- sub-←■ ext sub with is∷-Δsub ext sub
--- -- ... | ext₂ = {!   !}
--- -- sub-←■ ext sub with is∷-Δsub ext sub
--- -- sub-←■ ext₁          (sub-trim sub wk) | ext₂        = lemma-sub wk (sub-←■ ext₁ sub)
--- -- sub-←■ is-nil        (sub-lock sub)    | _           = sub
--- -- sub-←■ (is-ext ext₁) (sub-keep sub)    | is-ext ext₂ = sub-←■ ext₁ sub
--- -- sub-←■ (is-ext ext₁) (sub-subs sub t)  | ext₂        = sub-←■ ext₁ sub
-
-
--- sub σ (nat x) = nat x
--- -------------------------------- 
--- sub sub-weak       (var Z)     = var (S Z)
--- sub (sub-extn σ x) (var Z)     = x
--- sub sub-weak       (var (S x)) = var (S (S x))
--- sub (sub-extn σ _) (var (S x)) = sub σ (var x)
--- -----------------------------------------------
--- sub σ (ƛ t) = ƛ sub {!   !} t
--- sub σ (box t) = box (sub (sub-lock σ) t)
--- sub σ (unbox t) = {!   !}
--- sub σ (l ∙ r) = sub σ l ∙ sub σ r
--- sub (sub-trim σ wk) t = weakening wk (sub σ t)
--- --------------------------------------------------------------
--- sub (sub-keep σ)    (var Z)     = var Z
--- sub (sub-subs σ u)  (var Z)     = u
--- sub (sub-keep σ)    (var (S x)) = sub (sub-trim σ (⊆-drop ⊆-refl)) (var x)
--- sub (sub-subs σ u)  (var (S x)) = sub σ (var x)
--- -----------------------------------------------
--- sub σ (nat n)   = nat n
--- sub σ (ƛ t)     = ƛ sub (sub-keep σ) t
--- sub σ (box t)   = box (sub (sub-lock σ) t)
--- sub σ (l ∙ r)   = sub σ l ∙ sub σ r
--- -----------------------------------
--- sub σ (unbox {ext = e} t) 
---     -- In this case, instead of just passing arguments we have to obey weakening
---     -- See the above lemmas which transform subs and contexts respectively.
---     = unbox {ext = is∷-Δsub e σ} (sub (sub-←■ e σ) t)
-
--- -- private variable
--- --     x y     : _ ∈ _
--- --     t t₁ t₂ : _ ⊢ _
-
-
--- -- infix 5 _[_]
--- -- -- Single variable substitution on the first free variable.
--- -- -- Used for β-reduction... obviously.
--- -- _[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
--- -- t₁ [ t₂ ] = sub (sub-subs sub-refl t₂) t₁
+infix 5 _[_]
+-- Single variable substitution on the first free variable.
+-- Used for β-reduction... obviously.
+_[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
+t₁ [ t₂ ] = sub (sub-refl • t₂) t₁
 
 -- -- -- infix 5 _[_/_]′
 -- -- -- -- Single variable substitution, from the above.
@@ -256,27 +130,13 @@ mutual
 -- -- --     build-sub (is-ext ext) sub = sub-keep (build-sub ext sub)
 -- -- --     build-sub is-nil       sub = sub
 
--- -- -- Some lemmas about substitution.
--- -- private module lemmas′ where
--- --     -- We need this lemma to prove the below
--- --     ⊆-refl-id : (x : A ∈ Γ) → Γ-weak ⊆-refl x ≡ x
--- --     ⊆-refl-id {Γ = Γ , B} (S x) rewrite ⊆-refl-id x = refl
--- --     ⊆-refl-id {Γ = Γ , B} Z                         = refl
+-- Some lemmas about substitution.
+private module lemmas where
+    -- We need this lemma to prove the below
+    ⊆-refl-id : (x : A ∈ Γ) → Γ-weak ⊆-refl x ≡ x
+    ⊆-refl-id {Γ = Γ , B} (S x) rewrite ⊆-refl-id x = refl
+    ⊆-refl-id {Γ = Γ , B} Z                         = refl
 
--- -- open lemmas′
+open lemmas
 
--- -- -- Γ , A ⊢ sub (sub-keep (sub-subs sub-refl a₁)) b₁ ~ sub (sub-keep (sub-subs sub-refl a₂)) b₂ ∶ B
--- -- -- 
--- -- -- sub-keep-ƛ : () ≡ 
-
--- -- -- sub-ƛ : {t₁ : Γ , A ⊢ B} → (ƛ t₁) [ t₂ ] ≡ ƛ (t₁ [ t₂ ])
--- -- -- sub-ƛ {t₁ = t₁} {t₂ = t₂} = {! !}
-
--- -- -- Substitution with sub-refl doesn't do anything - special case for variables.
--- -- -- Probably true in general, but the case for unbox is annoying.
--- -- -- We don't need it so this is way easier to prove.
--- -- sub-refl-id-var : (t : Γ ⊢ A) → t ≡ var x → sub sub-refl t ≡ t
--- -- sub-refl-id-var (var Z)     refl = refl
--- -- sub-refl-id-var (var (S x)) refl 
--- --     rewrite sub-refl-id-var (var x) refl | ⊆-refl-id x = refl
-                 
+  

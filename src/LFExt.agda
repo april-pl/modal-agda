@@ -38,7 +38,7 @@ is∷-Γ₂≡∅ : Γ is Γ₁ ∷ ∅ → Γ ≡ Γ₁
 is∷-Γ₂≡∅ is-nil = refl
 
 -- Left-of-lock is Γ₁ if it ends with a lock
-is∷-←■ : Γ is Γ₁ ■ ∷ Γ₂ → ←■ Γ ≡ Γ₁
+is∷-←■ : Γ is Γ₁ ■ ∷ Γ₂ → (←■ Γ) ≡ Γ₁
 is∷-←■ (is-ext ext) = is∷-←■ ext
 is∷-←■ is-nil       = refl
 
@@ -95,4 +95,4 @@ is∷-Δweak is-nil       (⊆-lock wk) = is-nil
 -- If Γ = Γ₁, Γ₂ then Δ, Γ = Δ, Γ₁, Γ₂
 is∷-lcong : Γ is Γ₁ ∷ Γ₂ → (Δ ∷ Γ) is (Δ ∷ Γ₁) ∷ Γ₂
 is∷-lcong (is-ext ext) = is-ext (is∷-lcong ext) 
-is∷-lcong is-nil       = is-nil       
+is∷-lcong is-nil       = is-nil    
