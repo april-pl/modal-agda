@@ -87,6 +87,10 @@ _≡?ₓ_ (S x) (S y) with x ≡?ₓ y
 ←∈ {Γ = (Δ , _)} (S x) = ←∈ {Γ = Δ} x
 -- ←∈ {Γ = (Δ ■)  } (L x) = ←∈ {Γ = Δ} x 
 
+-- Nothing can be a member of an empty context
+¬A∈∅ : ¬ (A ∈ ∅)
+¬A∈∅ ()
+
 -- Elements left of the leftmost lock
 ←■ : Context → Context
 ←■ ∅       = ∅

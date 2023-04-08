@@ -12,9 +12,9 @@ open import Subst
 private variable
     t t′ t₁ t₂ t₁′ t₂′ a a₁ a₂ a′ b b₁ b₂ b′ : _ ⊢ _
     A B : Type
-    Γ Γ′ Δ Γ₁ Γ₂ : Context
+    Γ Γ′ Δ Γ₁ Γ₂ θ : Context
     □ext : Γ is Γ₁ ■ ∷ Γ₂
-    σ σ₁ σ₂ τ : _ ⇉ _
+    σ σ′ σ₁ σ₂ τ τ′ : _ ⇉ _
 
 infix 2 _⊢_~_∶_
 data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → Set where
@@ -80,3 +80,24 @@ data _,_⊢_~_ : (Γ Δ : Context) → Γ ⇉ Δ → Γ ⇉ Δ → Set where
     simσ-■ : Γ   , Δ   ⊢ σ    ~ τ 
            -------------------------
            → Γ ■ , Δ ■ ⊢ σ •■ ~ τ •■ 
+
+    simσ-• : Γ , Δ ⊢ σ  ~ τ
+           → Γ     ⊢ t₁ ~ t₂ ∶ A
+           -----------------------------------
+           → Γ , (Δ , A) ⊢ (σ • t₁) ~ (τ • t₂)
+
+-- simσ-◦ : Δ , θ ⊢ σ      ~ τ 
+--        → Γ , Δ ⊢ σ′     ~ τ′
+--        -------------------------
+--        → Γ , θ ⊢ σ ◦ σ′ ~ τ ◦ τ′
+-- simσ-◦ simσ-ε sim₂ = simσ-ε
+-- simσ-◦ (simσ-p w) sim₂ = {! sim₂ !}
+-- simσ-◦ (simσ-■ sim₁) sim₂ = {!   !}
+-- simσ-◦ (simσ-• sim₁ x) sim₂ = {!   !}
+
+-- simσ-refl : Γ , Γ ⊢ sub-refl ~ sub-refl
+-- simσ-refl {∅} = simσ-ε
+-- simσ-refl {Γ , x} = 
+--     let rec = simσ-refl {Γ = Γ}
+--     in simσ-• {!   !} (sim-var Z)
+-- simσ-refl {Γ ■} = simσ-■ simσ-refl

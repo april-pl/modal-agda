@@ -87,7 +87,7 @@ mutual
     σ+  : Γ ⇉ Δ → Γ , A ⇉ Δ , A
     σ+ σ = (σ ◦ p) • (var Z)
 
-    -- Parallel substitution, defined recursively with composition
+    -- Parallel substitution, defined mutually recursively with composition
     sub σ (nat x) = nat x
     -------------------------
     sub (wk w)  (var Z)     = var (Γ-weak w Z)
