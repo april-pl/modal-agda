@@ -6,6 +6,7 @@ open import Trans
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Function
 open import Data.Bool 
+open import Data.Nat
 open import Data.Product renaming (_,_ to _⸲_)
 open import Subst
 
@@ -18,6 +19,10 @@ private variable
 
 infix 2 _⊢_~_∶_
 data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → Set where
+    sim-nat : (n : ℕ) 
+            ----------
+            → Γ ⊢ nat n ~ nat n ∶ Nat
+
     sim-lock : Γ is Γ₁ ■ ∷ Γ₂
              → (t  : Γ ⊢ A) 
              → (t′ : Γ ⊢ A)
@@ -45,9 +50,18 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
               ----------------------------------------------------------
               → Γ ■ ⊢ unbox {ext = □ext} t ~ unbox {ext = □ext} t′ ∶ A
 
+sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
+sim-refl (nat n) = sim-nat n
+sim-refl (var x) = sim-var x
+sim-refl (ƛ t) = sim-lam (sim-refl t)
+sim-refl (box t) = sim-box (sim-refl t)
+sim-refl (unbox {ext = e} t) = sim-lock e (unbox t) (unbox t)
+sim-refl (l ∙ r) = sim-app (sim-refl l) (sim-refl r)
+
 -- Simulation implies typing...
 -- Seriously, can't agda figure this one out itself?
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
+sit t₁         t₂         (sim-nat n)                               = refl
 sit t₁         t₂         (sim-lock x _ _)                          = refl
 sit t₁         t₂         (sim-var x)                               = refl
 sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)       rewrite sit t₁ t₂ sim = refl
@@ -60,6 +74,7 @@ sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim
 weakening~ : (w : Γ ⊆ Δ) 
            → Γ ⊢ t₁ ~ t₂ ∶ A 
            → Δ ⊢ (weakening w t₁) ~ (weakening w t₂) ∶ A
+weakening~ w (sim-nat n)          = sim-nat n
 weakening~ w (sim-lock ext t₁ t₂) = sim-lock (is∷-Δweak ext w) (weakening w t₁) (weakening w t₂)
 weakening~ w (sim-var x)          = sim-var  (Γ-weak w x)
 weakening~ w (sim-app simₗ simᵣ)  = sim-app  (weakening~ w simₗ) (weakening~ w simᵣ)
@@ -85,6 +100,13 @@ data _,_⊢_~_ : (Γ Δ : Context) → Γ ⇉ Δ → Γ ⇉ Δ → Set where
            → Γ     ⊢ t₁ ~ t₂ ∶ A
            -----------------------------------
            → Γ , (Δ , A) ⊢ (σ • t₁) ~ (τ • t₂)
+
+simσ-refl : Γ , Δ ⊢ σ ~ σ
+simσ-refl {σ = ε}     = simσ-ε
+simσ-refl {σ = wk x}  = simσ-p x
+simσ-refl {σ = σ •■}  = simσ-■ simσ-refl
+simσ-refl {σ = σ • t} = simσ-• simσ-refl (sim-refl t)
+        
 
 -- simσ-◦ : Δ , θ ⊢ σ      ~ τ 
 --        → Γ , Δ ⊢ σ′     ~ τ′
