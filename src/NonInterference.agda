@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 module NonInterference where
 open import Base
 open import LFExt
@@ -39,21 +38,6 @@ private module lemmas where
     ------------------------------------------------------------
     lemma-st (⊆-drop w) (simσ-• simσ x) = lemma-st w simσ
     lemma-st (⊆-keep w) (simσ-• simσ x) = simσ-• (lemma-st w simσ) x
-
-    -- lemma-¬■-⊆ : ¬■ Γ → Δ ⊆ Γ → ¬■ Δ
-    -- lemma-¬■-⊆ prf       ⊆-empty    = prf
-    -- lemma-¬■-⊆ (¬■, prf) (⊆-drop w) = lemma-¬■-⊆ prf w
-    -- lemma-¬■-⊆ prf       (⊆-keep w) = ¬■, (lemma-¬■-⊆ prf (⊆-drop w))
-
-    -- lemma-¬■-⇉ : ¬■ Δ → Γ ⇉ Δ → ¬■ Γ
-    -- lemma-¬■-⇉ prf ε = {!   !}
-    -- lemma-¬■-⇉ prf (wk x) = {!   !}
-    -- lemma-¬■-⇉ prf (w • x) = {!   !}
-
-    -- lemma-¬■ : ¬■ Δ → Γ , Δ ⊢ σ ~ τ → ¬■ Γ
-    -- lemma-¬■ prf simσ-ε = {!   !}
-    -- lemma-¬■ prf (simσ-p w) = {!   !}
-    -- lemma-¬■ prf (simσ-• sim x) = {!   !}
 
 open lemmas
 

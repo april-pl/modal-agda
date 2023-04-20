@@ -13,15 +13,6 @@ private variable
     A B : Type
     Γ Δ θ Γ₁ Γ₂ Γ′ Δ₁ Δ₂ Δ′ : Context
 
-{-- 
-Acc ~ is ∷
-lCtx ~ ←■
-rCtx ~ ■→
-new ~ new (wtf is new)
-factorWk ~ sliceLeft ~ is∷-←■weak
-factorExt ~ wkLFExt ~ is∷Δweak
---}
-
 infixr 3 _⇉_
 infixr 4 _•■
 infixr 4 _•_
@@ -115,28 +106,6 @@ sub-refl {Γ , x} = σ+ sub-refl
 sub-refl {Γ ■}   = sub-refl •■
 
 infix 5 _[_]
--- Single variable substitution on the first free variable.
--- Used for β-reduction... obviously.
+-- Single variable substitution on the first free variable. Used in β.
 _[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
 t₁ [ t₂ ] = sub (sub-refl • t₂) t₁
-
--- -- -- infix 5 _[_/_]′
--- -- -- -- Single variable substitution, from the above.
--- -- -- _[_/_]′ : Γ ⊢ A → (Γ₁ ∷ Γ₂) ⊢ B → Γ is Γ₁ , B ∷ Γ₂ → (Γ₁ ∷ Γ₂) ⊢ A
--- -- -- t₁ [ t₂ / is-nil ]′   = t₁ [ t₂ ] 
--- -- -- t₁ [ t₂ / is-ext x ]′ = sub (sub-keep (build-sub x (sub-subs sub-refl {!   !}))) t₁ 
--- -- --     where
--- -- --     build-sub : Γ is Γ₁ , A ∷ Γ₂ → Sub (Γ₁ , A) Γ₁ → Sub Γ (Γ₁ ∷ Γ₂)
--- -- --     build-sub (is-ext ext) sub = sub-keep (build-sub ext sub)
--- -- --     build-sub is-nil       sub = sub
-
--- Some lemmas about substitution.
-private module lemmas where
-    -- We need this lemma to prove the below
-    ⊆-refl-id : (x : A ∈ Γ) → Γ-weak ⊆-refl x ≡ x
-    ⊆-refl-id {Γ = Γ , B} (S x) rewrite ⊆-refl-id x = refl
-    ⊆-refl-id {Γ = Γ , B} Z                         = refl
-
-open lemmas
-
-  

@@ -53,13 +53,13 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
 sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
 sim-refl (nat n) = sim-nat n
 sim-refl (var x) = sim-var x
-sim-refl (ƛ t) = sim-lam (sim-refl t)
+sim-refl (ƛ t)   = sim-lam (sim-refl t)
 sim-refl (box t) = sim-box (sim-refl t)
-sim-refl (unbox {ext = e} t) = sim-lock e (unbox t) (unbox t)
 sim-refl (l ∙ r) = sim-app (sim-refl l) (sim-refl r)
+sim-refl (unbox {ext = e} t) 
+    = sim-lock e (unbox t) (unbox t)
 
--- Simulation implies typing...
--- Seriously, can't agda figure this one out itself?
+-- Simulation implies typing, used to coax agda into unifying types of simulations.
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
 sit t₁         t₂         (sim-nat n)                               = refl
 sit t₁         t₂         (sim-lock x _ _)                          = refl
@@ -70,18 +70,6 @@ sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂
 ... | refl = refl
 sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
 ... | refl = refl
-
-weakening~ : (w : Γ ⊆ Δ) 
-           → Γ ⊢ t₁ ~ t₂ ∶ A 
-           → Δ ⊢ (weakening w t₁) ~ (weakening w t₂) ∶ A
-weakening~ w (sim-nat n)          = sim-nat n
-weakening~ w (sim-lock ext t₁ t₂) = sim-lock (is∷-Δweak ext w) (weakening w t₁) (weakening w t₂)
-weakening~ w (sim-var x)          = sim-var  (Γ-weak w x)
-weakening~ w (sim-app simₗ simᵣ)  = sim-app  (weakening~ w simₗ) (weakening~ w simᵣ)
-weakening~ w (sim-lam sim)        = sim-lam  (weakening~ (⊆-keep w) sim)
-weakening~ w (sim-box sim)        = sim-box  (weakening~ (⊆-lock w) sim)
-weakening~ w (sim-unbox {t = t₁} {t₂} {□ext = ext} sim) with sit _ _ sim
-... | refl = sim-lock (is∷-Δweak ext w) (weakening w (unbox t₁)) (weakening w (unbox t₂)) 
 
 -- Simulation extended pointwise to substitutions
 infix 2 _,_⊢_~_
@@ -106,20 +94,3 @@ simσ-refl {σ = ε}     = simσ-ε
 simσ-refl {σ = wk x}  = simσ-p x
 simσ-refl {σ = σ •■}  = simσ-■ simσ-refl
 simσ-refl {σ = σ • t} = simσ-• simσ-refl (sim-refl t)
-        
-
--- simσ-◦ : Δ , θ ⊢ σ      ~ τ 
---        → Γ , Δ ⊢ σ′     ~ τ′
---        -------------------------
---        → Γ , θ ⊢ σ ◦ σ′ ~ τ ◦ τ′
--- simσ-◦ simσ-ε sim₂ = simσ-ε
--- simσ-◦ (simσ-p w) sim₂ = {! sim₂ !}
--- simσ-◦ (simσ-■ sim₁) sim₂ = {!   !}
--- simσ-◦ (simσ-• sim₁ x) sim₂ = {!   !}
-
--- simσ-refl : Γ , Γ ⊢ sub-refl ~ sub-refl
--- simσ-refl {∅} = simσ-ε
--- simσ-refl {Γ , x} = 
---     let rec = simσ-refl {Γ = Γ}
---     in simσ-• {!   !} (sim-var Z)
--- simσ-refl {Γ ■} = simσ-■ simσ-refl

@@ -5,12 +5,8 @@ open import Data.Nat
 open import Data.Unit
 open import Data.Empty
 open import Function.Base
--- open import Data.Bool
 open import Relation.Binary.PropositionalEquality
 open import Data.Product renaming (_,_ to _،_)
-
--- F : Bool → Set
--- F b = T (not b)
 
 private variable
     A B T U : Type
@@ -33,20 +29,6 @@ data _⊢_ : Context → Type → Set where
 
     _∙_   : Γ ⊢ A ⇒ B → Γ ⊢ A → Γ ⊢ B
 
-
--- map-unbox : (ext : Γ is Γ₁ ■ ∷ Γ₂) 
---           → (t : Γ₁ ⊢ □ A) → (unb : Γ ⊢ A) 
---           → {unb ≡ unbox {ext = ext} t} 
---           → (f : Context → Context)
---           → Σ[ Δ ] Δ is (f Γ₁) ■ ∷ Γ₂ × Δ ⊢ A 
--- map-unbox = {!   !}
-
--- -- Alternative for unbox that mostly sidesteps the extension issue
--- -- Maybe this should just be the definition?
--- unbox-alt : ■Γ Γ → (←■ Γ) ⊢ □ A → Γ ⊢ A
--- unbox-alt {Γ = Γ , x} prf t with unbox-alt {Γ = Γ} prf (unbox t) 
--- ... | a = unbox {ext = {! is-nil !}} t
--- unbox-alt {Γ = Γ ■}   prf t = unbox {ext = is-nil} t
 
 weakening : Γ ⊆ Δ → Γ ⊢ A → Δ ⊢ A
 weakening wk (nat n) = nat n
