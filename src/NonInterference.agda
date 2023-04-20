@@ -40,96 +40,61 @@ private module lemmas where
     lemma-st (⊆-drop w) (simσ-• simσ x) = lemma-st w simσ
     lemma-st (⊆-keep w) (simσ-• simσ x) = simσ-• (lemma-st w simσ) x
 
-    lemma-σ+ : ¬■ Δ
-             → Γ       , Δ       ⊢ σ            ~ τ
-             → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
-    lemma-σ+ prf simσ-ε     = simσ-• simσ-ε                                (sim-var Z)
-    lemma-σ+ prf (simσ-p w) = simσ-• (lemma-st w (simσ-p (⊆-drop ⊆-refl))) (sim-var Z)
-    lemma-σ+ (¬■, prf) (simσ-• simσ simₜ) with lemma-σ+ prf simσ
-    ... | simσ-• simσ′ r = simσ-• (simσ-• simσ′ {!   !}) r
+    lemma-¬■-⊆ : ¬■ Γ → Δ ⊆ Γ → ¬■ Δ
+    lemma-¬■-⊆ prf       ⊆-empty    = prf
+    lemma-¬■-⊆ (¬■, prf) (⊆-drop w) = lemma-¬■-⊆ prf w
+    lemma-¬■-⊆ prf       (⊆-keep w) = ¬■, (lemma-¬■-⊆ prf (⊆-drop w))
+
+    lemma-¬■-⇉ : ¬■ Γ → Γ ⇉ Δ → ¬■ Δ
+    lemma-¬■-⇉ prf ε       = ¬■∅
+    lemma-¬■-⇉ prf (wk w)  = lemma-¬■-⊆ prf w
+    lemma-¬■-⇉ prf (σ • t) = ¬■, (lemma-¬■-⇉ prf σ)
 
 open lemmas
 
-ius : ¬■ Γ
-    → (t₁ t₂ : Γ ⊢ A)
-    → (σ₁ σ₂ : Δ ⇉ Γ)
-    -----------------------------------
-    → Γ     ⊢ t₁          ~ t₂          ∶ A 
-    → Δ , Γ ⊢ σ₁          ~ σ₂ 
-    -----------------------------------
-    → Δ     ⊢ (sub σ₁ t₁) ~ (sub σ₂ t₂) ∶ A
--- The indistinguishability under substitution lemma.
-ius prf t₁ t₂ σ τ (sim-nat n)        simσ = sim-nat n
--------------------------------------------------
-ius prf t₁ t₂ σ τ (sim-lock ext _ _) simσ = sim-lock (is∷-Δsub ext σ) (sub σ t₁) (sub τ t₂)
----------------------------------------------------------------------------------------
-ius prf       t₁ t₂ (wk w) (wk w) (sim-var Z)     (simσ-p w) = sim-var (Γ-weak w Z)
-ius (¬■, prf) t₁ t₂ (wk w) (wk w) (sim-var (S x)) (simσ-p w) =
-    let w′ = ⊆-assoc (⊆-drop ⊆-refl) w
-    in ius prf (var x) (var x) (wk w′) (wk w′) (sim-var x) (simσ-p w′)
------------------------------------------------------------------
-ius prf       t₁ t₂ (σ • _) (τ • _) (sim-var Z)     (simσ-• simσ simᵤ) = simᵤ
-ius (¬■, prf) t₁ t₂ (σ • _) (τ • _) (sim-var (S x)) (simσ-• simσ simᵤ) =
-    ius prf (var x) (var x) (⇉-st σ ⊆-refl) (⇉-st τ ⊆-refl) (sim-var x) (lemma-st ⊆-refl simσ)
------------------------------------------------------------------------------------
-ius prf (l₁ ∙ r₁) (l₂ ∙ r₂) σ τ (sim-app simₗ simᵣ) simσ with sit _ _ simₗ | sit _ _ simᵣ
-... | refl | refl = sim-app (ius prf l₁ l₂ σ τ simₗ simσ) (ius prf r₁ r₂ σ τ simᵣ simσ)
--------------------------------------------------------------------------------
-ius prf (ƛ b₁) (ƛ b₂) σ τ (sim-lam simₜ) simσ    with sit b₁ b₂ simₜ
-... | refl = sim-lam (ius (¬■, prf) b₁ b₂ (σ+ σ) (σ+ τ) simₜ (lemma-σ+ prf simσ))
--- ius prf (ƛ b₁) (ƛ b₂) ε ε (sim-lam simₜ) simσ-ε    with sit b₁ b₂ simₜ 
--- ... | refl = let σ′ = ε • var Z
---                  τ′ = ε • var Z
---              in sim-lam (ius (¬■, prf) b₁ b₂ σ′ τ′ simₜ (simσ-• simσ-ε (sim-var Z)))
-                
--- ius prf (ƛ b₁) (ƛ b₂) _ _ (sim-lam simₜ) (simσ-p w) with sit b₁ b₂ simₜ
--- ... | refl = let σ′ = ⇉-st p w • var Z
---                  τ′ = ⇉-st p w • var Z
---              in sim-lam (ius (¬■, prf) b₁ b₂ σ′ τ′ simₜ (simσ-• 
---                     (lemma-st w (simσ-p (⊆-drop ⊆-refl))) (sim-var Z)))
+{-# TERMINATING #-}
+mutual 
+    lemma-σ+ : ¬■ Δ
+             → Γ       , Δ       ⊢ σ            ~ τ
+             → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
 
--- ius prf (ƛ b₁) (ƛ b₂) (σ • t) (τ • u) (sim-lam simₜ) (simσ-• simσ x) with sit b₁ b₂ simₜ 
--- ... | refl = let σ′   = ((σ ◦ p) • sub p t) • var Z
---                  τ′   = ((τ ◦ p) • sub p u) • var Z
---                  sim+ = simσ-• {!   !} {!   !} 
---              in sim-lam (ius (¬■, prf) b₁ b₂ σ′ τ′ simₜ (simσ-• sim+ (sim-var Z)))
-            --  in sim-lam (ius (¬■, prf) b₁ b₂ σ′ τ′ simₜ {!   !})
-                    -- (simσ-• (simσ-• {!   !} 
-                    --                 (ius {!   !} t u p p x (simσ-p (⊆-drop ⊆-refl)))
-                    --             ) (sim-var Z)))
--- with sit b₁ b₂ simₜ 
--- ... | refl = let σ′ = (σ ◦ wk (⊆-drop ⊆-refl)) • var Z
---                  τ′ = (τ ◦ wk (⊆-drop ⊆-refl)) • var Z
---     in sim-lam (ius (¬■, prf) b₁ b₂ σ′ τ′ simₜ (simσ-• {!   !} (sim-var Z)))
-----------------------------------------------------
-ius prf (box b₁) (box b₂) σ τ (sim-box simₜ) simσ with sit b₁ b₂ simₜ
-... | refl = sim-box (sim-lock is-nil (sub (σ •■) b₁) (sub (τ •■) b₂))
+    ius : ¬■ Γ
+        → (t₁ t₂ : Γ ⊢ A)
+        → (σ₁ σ₂ : Δ ⇉ Γ)
+        -----------------------------------
+        → Γ     ⊢ t₁          ~ t₂          ∶ A 
+        → Δ , Γ ⊢ σ₁          ~ σ₂ 
+        -----------------------------------
+        → Δ     ⊢ (sub σ₁ t₁) ~ (sub σ₂ t₂) ∶ A
 
-    
---------------------------------------------------------
--- ius prf (unbox b₁) (unbox b₂) σ τ (sim-unbox simₜ) simσ with sit b₁ b₂ simₜ 
--- ... | refl = ⊥-elim (¬■LF prf)
+    lemma-σ+ prf simσ-ε     = simσ-• simσ-ε                                (sim-var Z)
+    lemma-σ+ prf (simσ-p w) = simσ-• (lemma-st w (simσ-p (⊆-drop ⊆-refl))) (sim-var Z)
+    lemma-σ+ (¬■, prf) (simσ-• {σ = σ} {t₁ = t₁} {t₂ = t₂} simσ simₜ) with lemma-σ+ prf simσ
+    ... | simσ-• simσ′ r = simσ-• (simσ-• simσ′ (ius {!   !} t₁ t₂ (wk (⊆-drop ⊆-refl)) (wk (⊆-drop ⊆-refl)) simₜ simσ-refl)) r
 
--- ius _ t₁ t₂ a₁ a₂ (sim-lock (is-ext ext) _ _) sim₂ = sim-lock ext (t₁ [ a₁ ]) (t₂ [ a₂ ])
--- ---------------------------------------------------------------------------------------
--- ius _ t₁ t₂ a₁ a₂ (sim-var Z)     sim₂ = sim₂
--- ius _ t₁ t₂ a₁ a₂ (sim-var (S x)) sim₂ rewrite sub-refl-id-var (var x) refl with is∷-∈ x  
--- ... | Γ₁ ، Γ₂ ، ext = sim-var x
--- --------------------------------------------
--- ius prf t₁ t₂ a₁ a₂ (sim-app  {t₁ = l₁} {t₁′ = l₂} {A = T} {B = U} {t₂ = r₁} {t₂′ = r₂} simₗ simᵣ) sim₂ with sit l₁ l₂ simₗ | sit r₁ r₂ simᵣ
--- ... | refl | refl = sim-app (ius prf l₁ l₂ a₁ a₂ simₗ sim₂) (ius prf r₁ r₂ a₁ a₂ simᵣ sim₂)
--- -----------------------------------------------------------------------------------
--- ius prf t₁ t₂ a₁ a₂ sim@(sim-lam {A = T} {t = b₁} {t′ = b₂} {B = U} sim₁) sim₂ 
---     with sit _ _ sim | sit b₁ b₂ sim₁ | sit _ _ sim₂
--- ... | refl | refl | refl = 
---     let a = {!   !}
---     --in sim-lam (ius (¬■, prf) {!  !} {!   !} {!   !} {!   !} {!   !} {!  !})
---     in {!   !}
--- ---------------------------------------------------
--- ius _ t₁ t₂ a₁ a₂ (sim-box {t = b₁} {t′ = b₂} sim₁) sim₂ with sit b₁ b₂ sim₁
--- ... | refl = sim-box (sim-lock is-nil (sub (sub-lock (sub-subs sub-refl a₁)) b₁)
---                                       (sub (sub-lock (sub-subs sub-refl a₂)) b₂))
 
+    -- The indistinguishability under substitution lemma.
+    ius prf t₁ t₂ σ τ (sim-nat n)        simσ = sim-nat n
+    -------------------------------------------------
+    ius prf t₁ t₂ σ τ (sim-lock ext _ _) simσ = sim-lock (is∷-Δsub ext σ) (sub σ t₁) (sub τ t₂)
+    ---------------------------------------------------------------------------------------
+    ius prf       t₁ t₂ (wk w) (wk w) (sim-var Z)     (simσ-p w) = sim-var (Γ-weak w Z)
+    ius (¬■, prf) t₁ t₂ (wk w) (wk w) (sim-var (S x)) (simσ-p w) =
+        let w′ = ⊆-assoc (⊆-drop ⊆-refl) w
+        in ius prf (var x) (var x) (wk w′) (wk w′) (sim-var x) (simσ-p w′)
+    -----------------------------------------------------------------
+    ius prf       t₁ t₂ (σ • _) (τ • _) (sim-var Z)     (simσ-• simσ simᵤ) = simᵤ
+    ius (¬■, prf) t₁ t₂ (σ • _) (τ • _) (sim-var (S x)) (simσ-• simσ simᵤ) =
+        ius prf (var x) (var x) (⇉-st σ ⊆-refl) (⇉-st τ ⊆-refl) (sim-var x) (lemma-st ⊆-refl simσ)
+    -----------------------------------------------------------------------------------
+    ius prf (l₁ ∙ r₁) (l₂ ∙ r₂) σ τ (sim-app simₗ simᵣ) simσ with sit _ _ simₗ | sit _ _ simᵣ
+    ... | refl | refl = sim-app (ius prf l₁ l₂ σ τ simₗ simσ) (ius prf r₁ r₂ σ τ simᵣ simσ)
+    -------------------------------------------------------------------------------
+    ius prf (ƛ b₁) (ƛ b₂) σ τ (sim-lam simₜ) simσ    with sit b₁ b₂ simₜ
+    ... | refl = sim-lam (ius (¬■, prf) b₁ b₂ (σ+ σ) (σ+ τ) simₜ (lemma-σ+ prf simσ))
+    ---------------------------------------------------------------------------------
+    ius prf (box b₁) (box b₂) σ τ (sim-box simₜ) simσ with sit b₁ b₂ simₜ
+    ... | refl = sim-box (sim-lock is-nil (sub (σ •■) b₁) (sub (τ •■) b₂))
 
 -- Non-interference for the Fitch calculus
 ni : ¬■ Γ

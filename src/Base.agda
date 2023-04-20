@@ -9,7 +9,7 @@ open import Data.Product renaming (_,_ to _،_)
 
 infixr 7 _⇒_
 -- Modal type constructors.
-data Type : Set where
+data Type : Set where 
     Nat  : Type
     □_   : Type → Type
     _⇒_ : Type → Type → Type
