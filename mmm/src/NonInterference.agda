@@ -19,7 +19,6 @@ private variable
     σ σ′ σ₁ σ₂ τ τ′ : _ ⇉ _ 
 
 private module lemmas where
-
     lemma-st : (w : Δ′ ⊆ Δ) 
              → Γ , Δ  ⊢ σ ~ τ 
              ---------------------------------------
@@ -32,6 +31,13 @@ private module lemmas where
     ----------------------------------------------------------------
     lemma-st (⊆-drop w) (simσ-• simσ x) = lemma-st w simσ
     lemma-st (⊆-keep w) (simσ-• simσ x) = simσ-• (lemma-st w simσ) x
+
+    lemma-≈ : Δ , Γ ⊢ σ ~ τ → t₁ ≈ t₂ → sub σ t₁ ≈ sub τ t₂
+    lemma-≈ simσ eqc-nat = eqc-nat
+    lemma-≈ simσ eqc-lam = eqc-lam
+    lemma-≈ simσ eqc-eta = eqc-eta
+    lemma-≈ simσ eqc-app = eqc-app
+    lemma-≈ simσ eqc-bnd = eqc-bnd
 
 open lemmas
 
@@ -54,9 +60,9 @@ mutual
     ... | simσ-• simσ′ r = simσ-• (simσ-• simσ′ (ius t₁ t₂ p p simₜ simσ-refl)) r
 
 
-    ius (η t₁)  (η t₂)  σ τ (sim-eta _ _) simσ = sim-eta (sub σ t₁) (sub τ t₂)
-    ius (nat n) (nat n) σ τ (sim-nat n)   simσ = sim-nat n
-    ------------------------------------------------------
+    ius t₁      t₂      σ τ (sim-box _ _ eqc) simσ = sim-box (sub σ t₁) (sub τ t₂) (lemma-≈ simσ eqc)
+    ius (nat n) (nat n) σ τ (sim-nat n)       simσ = sim-nat n
+    ----------------------------------------------------------
     ius (l₁ ∙ r₁) (l₂ ∙ r₂) σ τ (sim-app simₗ simᵣ) simσ with sit _ _ simₗ | sit _ _ simᵣ
     ... | refl | refl = sim-app (ius  l₁ l₂ σ τ simₗ simσ) (ius r₁ r₂ σ τ simᵣ simσ)
     --------------------------------------------------------------------------------
@@ -71,30 +77,35 @@ mutual
     -------------------------------------------------------------
     ius (ƛ b₁) (ƛ b₂) σ τ (sim-lam simₜ) simσ with sit b₁ b₂ simₜ
     ... | refl = sim-lam (ius b₁ b₂ (σ+ σ) (σ+ τ) simₜ (lemma-σ+ simσ))
-    -------------------------------------------------------------------
-    ius (bnd a₁ t₁) (bnd a₂ t₂) σ τ (sim-let simₐ simₜ) simσ with sit _ _ simₐ | sit _ _ simₜ 
-    ... | refl | refl = sim-let (ius a₁ a₂ σ τ simₐ simσ) 
-                                (ius t₁ t₂ (σ+ σ) (σ+ τ) simₜ (lemma-σ+ simσ))
 
 -- Non-interference for MMM
 ni : Γ ⊢ t₁ ~ t₂ ∶ A 
    → t₁ →β t₁′
    ------------------------------------------------------
    → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ →β t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
+
+-- ni (sim-box .((ƛ _) ∙ _) _ eqc-app) βƛ = {!   !}
+-- ni (sim-app sim sim₁) βƛ = {!   !}
+-- ni sim βbind = {!   !}
+-- ni sim (ξappl step) = {!   !}
+-- ni sim (ξappr step) = {!   !}
+-- ni sim (ξbind step) = {!   !}
+
+ni (sim-box (f₁ ∙ x₁) t (eqc-app {l₂ = f₂} {x₂})) βƛ = {!   !} ، {! βƛ !} ، {!   !}
+ni (sim-box .(bnd (η _) _) _ _) βbind = {!   !}
+
+ni (sim-box (l₁ ∙ r₁) _ (eqc-app {l₂ = l₂} {r₂})) (ξappl step) with ni {!   !} step
+... | a = {! l₂ ∙ r₂ !} ، {!   !} ، {!   !}
+
+ni (sim-box .(_ ∙ _) _ _) (ξappr step) = {!   !}
+ni (sim-box .(bnd _ _) _ _) (ξbind step) = {!   !}
+
+ni (sim-box _ _ _) a = {!   !}
+
 ni (sim-app {t₁ = f₁} {f₂} {t₂ = x₁} {x₂} simƛ simᵣ) βƛ with simƛ 
 ... | sim-lam {t = b₁} {b₂} sim∙ = b₂ [ x₂ ] ، βƛ 
                                  ، ius b₁ b₂ (sub-refl • x₁) (sub-refl • x₂) sim∙ (simσ-• simσ-refl simᵣ)
-
-ni (sim-let {t₁ = t₁} {t₂ = t₂} simₐ simₜ) βbind with simₐ 
--- ... | sim-eta e₁ e₂ with e₁
--- ... | var x = t₂ [ e₂ ] ، βbind ، {!   !}
--- ... | η uff = {!   !}
--- ... | uff ∙ uff₁ = {!   !}
--- ... | bnd uff uff₁ = {!   !}
-
--- t₂ [ e₂ ] ، βbind 
---                     ، ius {!   !} {!   !} {!   !} {!   !} {!   !} {!   !}
-
+                                 
 ni (sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξappl step) 
                                     with sit _ _ simₗ | sit _ _ simᵣ
 ... | refl | refl                   with ni simₗ step 
@@ -105,10 +116,4 @@ ni (sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξappr ste
                                     with sit _ _ simₗ | sit _ _ simᵣ
 ... | refl | refl                   with ni simᵣ step 
 ... | r₂′ ، βr₂ ، ind               with sit _ _ ind 
-... | refl = l₂ ∙ r₂′ ، ξappr βr₂ ، sim-app simₗ ind
-
-ni (sim-let {a₁ = a₁} {a₂} {t₁ = t₁} {t₂} simₐ simₜ) (ξbind step) 
-                                    with sit _ _ simₐ | sit _ _ simₜ
-... | refl | refl                   with ni simₐ step 
-... | a₂′ ، βa₂ ، ind               with sit _ _ ind
-... | refl = bnd a₂′ t₂ ، ξbind βa₂ ، sim-let ind simₜ  
+... | refl = l₂ ∙ r₂′ ، ξappr βr₂ ، sim-app simₗ ind  
