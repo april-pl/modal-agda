@@ -1,11 +1,12 @@
 module Base where
+open import Relation.Binary.PropositionalEquality
 
 infixr 7 _⇒_
 -- Type constructors.
 data Type : Set where 
     Nat  : Type
-    T_   : Type → Type
-    _⇒_ : Type → Type → Type
+    T    : Type → Type
+    _⇒_  : Type → Type → Type
 
 -- Now our contexts are just lists
 data Context : Set where
@@ -28,6 +29,21 @@ data _⊆_ : Context → Context → Set where
     ⊆-empty :         ∅     ⊆ ∅
     ⊆-drop  : Γ ⊆ Δ → Γ     ⊆ Δ , A
     ⊆-keep  : Γ ⊆ Δ → Γ , A ⊆ Δ , A
+
+⊆∅ : Γ ⊆ ∅ → Γ ≡ ∅
+⊆∅ {∅} wk = refl
+⊆∅ {Γ , x} ()
+
+⊆-assoc : Γ₁ ⊆ Γ₂ → Γ₂ ⊆ Γ₃ → Γ₁ ⊆ Γ₃
+⊆-assoc ⊆-empty wk₂               = wk₂
+⊆-assoc (⊆-drop wk₁) (⊆-drop wk₂) = ⊆-drop (⊆-assoc (⊆-drop wk₁) wk₂)
+⊆-assoc (⊆-drop wk₁) (⊆-keep wk₂) = ⊆-drop (⊆-assoc wk₁ wk₂)
+⊆-assoc (⊆-keep wk₁) (⊆-drop wk₂) = ⊆-drop (⊆-assoc (⊆-keep wk₁) wk₂)
+⊆-assoc (⊆-keep wk₁) (⊆-keep wk₂) = ⊆-keep (⊆-assoc wk₁ wk₂)
+
+⊆-refl : Γ ⊆ Γ
+⊆-refl {Γ = Γ , x} = ⊆-keep ⊆-refl
+⊆-refl {Γ = ∅}     = ⊆-empty
 
 Γ-weak : Γ ⊆ Δ → A ∈ Γ → A ∈ Δ 
 Γ-weak (⊆-drop rest) x     = S (Γ-weak rest x)

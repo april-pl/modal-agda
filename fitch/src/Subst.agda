@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 module Subst where
 open import Base
 open import Terms
@@ -80,7 +79,7 @@ mutual
 
     -- Parallel substitution, defined mutually recursively with composition
     sub σ (nat x) = nat x
-    -------------------------
+    ---------------------
     sub (wk w)  (var Z)     = var (Γ-weak w Z)
     sub (σ • t) (var Z)     = t
     sub σ       (var (S x)) = sub (p ◦ σ) (var x)
