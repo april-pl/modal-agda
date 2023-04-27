@@ -86,7 +86,7 @@ ni (sim-app {t₁ = f₁} {f₂} {t₂ = x₁} {x₂} simƛ simᵣ) βƛ with si
                                  ، ius b₁ b₂ (sub-refl • x₁) (sub-refl • x₂) sim∙ (simσ-• simσ-refl simᵣ)
 
 ni (sim-let {t₁ = t₁} {t₂ = t₂} simₐ simₜ) βbind with simₐ 
--- ... | sim-eta e₁ e₂ with e₁
+... | sim-eta e₁ e₂ = {!   !}
 -- ... | var x = t₂ [ e₂ ] ، βbind ، {!   !}
 -- ... | η uff = {!   !}
 -- ... | uff ∙ uff₁ = {!   !}
