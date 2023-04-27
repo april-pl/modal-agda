@@ -10,6 +10,7 @@ infixl 6 _∙_
 infix  5 ƛ_
 infix  5 η_
 infix  3 _⊢_
+infix  5 bind_inside_
 -- The type of well-typed and scoped terms.
 data _⊢_ : Context → Type → Set where
     nat   : ℕ         → Γ ⊢ Nat
@@ -21,3 +22,6 @@ data _⊢_ : Context → Type → Set where
     
     -- `in` is a reserved keyword.
     bind_inside_ : Γ ⊢ T A → Γ , A ⊢ T B → Γ ⊢ T B
+
+infix 5 bnd
+pattern bnd a t = bind a inside t

@@ -18,5 +18,5 @@ data _→β_ : Γ ⊢ A → Γ ⊢ A → Set where
     ξappl : l →β l′ → l ∙ r →β l′ ∙ r
     ξappr : r →β r′ → l ∙ r →β l  ∙ r′
 
-    ξbind : t →β t′ 
+    ξbind : a →β a′ 
         → bind a inside t →β bind a′ inside t
