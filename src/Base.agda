@@ -6,7 +6,7 @@ open import Data.Empty
 open import Data.Unit
 open import Relation.Binary.PropositionalEquality
 open import Data.Product renaming (_,_ to _،_)
-
+open import Data.Sum
 infixr 7 _⇒_
 -- Modal type constructors.
 data Type : Set where 
@@ -36,6 +36,11 @@ _∷_ : Context → Context → Context
 data ¬■ : Context → Set where
     ¬■∅ : ¬■ ∅
     ¬■, : ¬■ Γ → ¬■ (Γ , A)
+
+-- Locked contexts
+data has-■ : Context → Set where
+    ■-has-■ : has-■ (Γ ■)   
+    ,-has-■ : has-■ Γ → has-■ (Γ , A)
 
 infix 4 _∈_
 -- Witnesses the membership of a variable with a given type in a context.
@@ -67,6 +72,10 @@ data _⊆_ : Context → Context → Set where
     ⊆-keep  : Γ ⊆ Δ → Γ , A ⊆ Δ , A
     ⊆-lock  : Γ ⊆ Δ → Γ ■   ⊆ Δ ■
 
+⊆-wk : Γ , A ⊆ Δ → Γ ⊆ Δ
+⊆-wk (⊆-drop s) = ⊆-drop (⊆-wk s)
+⊆-wk (⊆-keep s) = ⊆-drop s 
+
 ⊆∅ : Γ ⊆ ∅ → Γ ≡ ∅
 ⊆∅ {∅} wk = refl
 ⊆∅ {Γ , x} ()
@@ -95,4 +104,4 @@ data _⊆_ : Context → Context → Set where
 Γ-weak : Γ ⊆ Δ → A ∈ Γ → A ∈ Δ 
 Γ-weak (⊆-drop rest) x     = S (Γ-weak rest x)
 Γ-weak (⊆-keep rest) (S x) = S (Γ-weak rest x)
-Γ-weak (⊆-keep rest) Z     = Z 
+Γ-weak (⊆-keep rest) Z     = Z  
