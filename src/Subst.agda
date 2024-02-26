@@ -36,13 +36,6 @@ wk ε           = ε
 wk (σ • t)     = wk σ • weakening (⊆-drop ⊆-refl) t
 wk (σ •[ w ]■) = σ •[ is-ext w ]■
 
-wk+ : Δ ⇉ Γ → Δ ⊆ Δ′ → Δ′ ⇉ Γ
-wk+ ε       s = ε
-wk+ (σ • t) s = wk+ σ s • weakening s t
-wk+ (σ •[ w ]■) (⊆-drop s) = {!   !}
-wk+ (σ •[ w ]■) (⊆-keep s) = {!   !}
-wk+ (σ •[ is-nil ]■) (⊆-lock s) = wk+ σ s •[ is-nil ]■
-
 -- Identity substitution
 id : Γ ⇉ Γ
 id {∅}     = ε
@@ -97,17 +90,20 @@ sub (_•_ {Δ = Δ} {A = B} σ u) (unbox {ext = is-ext e} t) with is∷-←■ 
 _◦_ : Δ ⇉ Γ → θ ⇉ Δ → θ ⇉ Γ
 ε           ◦ τ = ε
 (σ • t)     ◦ τ = (σ ◦ τ) • sub τ t
-(σ •[ w ]■) ◦ (τ • t) = {!   !}
+-----------------------------------
+(σ •[ is-ext w ]■) ◦ (τ • t) with sub-←■ τ 
+... | τ′                     with is∷-←■ w
+... | refl                   with ⇉-has-■-l τ (is∷-locked w)
+... | lock = (σ ◦ τ′) •[ partition-locked lock ]■
+-------------------------------------------------
 (σ •[ w ]■) ◦ (τ •[ m ]■) with is∷-unpeelₗ w
 ... | refl = (σ ◦ τ) •[ m ]■
 
-
+infix 5 _[_]
+-- Single varia
 -- sub-refl : Γ ⇉ Γ
 -- sub-refl {∅}     = ε
 -- sub-refl {Γ , x} = σ+ sub-refl
--- sub-refl {Γ ■}   = sub-refl •■
-
-infix 5 _[_]
--- Single variable substitution on the first free variable. Used in β.
+-- sub-refl {Γ ■}   = sub-refl •■ble substitution on the first free variable. Used in β.
 _[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
 t₁ [ t₂ ] = sub (id • t₂) t₁    
