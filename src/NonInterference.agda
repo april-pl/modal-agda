@@ -20,6 +20,44 @@ private variable
     □ext : Γ is Γ₁ ■ ∷ Γ₂
     σ σ′ σ₁ σ₂ τ τ′ : _ ⇉ _ 
 
+lemma-σ+ : ¬■ Γ
+         → ¬■ Δ
+         → Γ       , Δ       ⊢ σ            ~ τ
+         → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
+lemma-σ+ p₁ p₂ simσ-ε = simσ-• simσ-ε (sim-var Z)
+lemma-σ+ p₁ (¬■, p₂) (simσ-• simσ sim) = {!   !}
+
+ius : ¬■ Γ
+    → ¬■ Δ
+    → (t₁ t₂ : Γ ⊢ A)
+    → (σ₁ σ₂ : Δ ⇉ Γ)
+    -----------------------------------
+    → Γ     ⊢ t₁          ~ t₂          ∶ A 
+    → Δ , Γ ⊢ σ₁          ~ σ₂ 
+    -----------------------------------
+    → Δ     ⊢ (sub σ₁ t₁) ~ (sub σ₂ t₂) ∶ A
+
+ius _ _ _ _ _ _ (sim-nat n) simσ = sim-nat n
+
+ius p₁ p₂ t₁ t₂ σ₁ σ₂ (sim-lock x _ _) simσ = ⊥-elim (¬■-■ p₁ x)
+
+ius p₁ p₂ _ _ _        _        (sim-var Z)     (simσ-• _ sim)    = sim
+ius p₁ p₂ _ _ (σ₁ • u₁) (σ₂ • u₂) (sim-var (S x)) (simσ-• simσ sim) = 
+    ius p₁ p₂ 
+        {!   !} {!   !} 
+        (σ₁ • {!   !}) ({!   !} • {!   !}) 
+        {!   !} {!   !}
+
+ius p₁ p₂ (l₁ ∙ r₁) (l₂ ∙ r₂) σ₁ σ₂ (sim-app simₗ simᵣ) simσ with sit′ simₗ | sit′ simᵣ
+... | refl | refl = sim-app (ius p₁ p₂ l₁ l₂ σ₁ σ₂ simₗ simσ) 
+                            (ius p₁ p₂ r₁ r₂ σ₁ σ₂ simᵣ simσ) 
+
+ius p₁ p₂ (ƛ t₁) (ƛ t₂) σ₁ σ₂ (sim-lam sim) simσ with sit′ sim
+... | refl = sim-lam (ius (¬■, p₁) (¬■, p₂) t₁ t₂ (σ+ σ₁) (σ+ σ₂) sim {!   !})
+
+ius p₁ p₂ (box t₁) (box t₂) σ₁ σ₂ (sim-box sim) simσ with sit′ sim 
+... | refl = sim-box (sim-lock is-nil (sub (σ₁ •■) t₁) (sub (σ₂ •■) t₂))
+
 -- lemma-st : (w : Δ′ ⊆ Δ) 
 --             → Γ , Δ  ⊢ σ ~ τ 
 --             ---------------------------------------
@@ -117,4 +155,4 @@ private variable
 --            ، ξappr βr₂ 
 --            ، sim-app simₗ ind
            
-               
+                

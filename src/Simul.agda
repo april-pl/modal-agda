@@ -71,6 +71,9 @@ sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂
 sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
 ... | refl = refl
 
+sit′ : {t₁ t₂ : Γ ⊢ B} → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
+sit′ {t₁ = t₁} {t₂ = t₂} = sit t₁ t₂ 
+
 -- Simulation extended pointwise to substitutions
 infix 2 _,_⊢_~_
 data _,_⊢_~_ : (Δ Γ : Context) → Δ ⇉ Γ → Δ ⇉ Γ → Set where
