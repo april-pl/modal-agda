@@ -13,7 +13,7 @@ open import Subst
 private variable
     t t′ t₁ t₂ t₁′ t₂′ a a₁ a₂ a′ b b₁ b₂ b′ : _ ⊢ _
     A B : Type
-    Γ Γ′ Δ Γ₁ Γ₂ θ : Context
+    Γ Γ′ Δ Δ₁ Δ₂ Γ₁ Γ₂ θ : Context
     □ext : Γ is Γ₁ ■ ∷ Γ₂
     σ σ′ σ₁ σ₂ τ τ′ : _ ⇉ _
 
@@ -73,24 +73,20 @@ sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim
 
 -- Simulation extended pointwise to substitutions
 infix 2 _,_⊢_~_
-data _,_⊢_~_ : (Γ Δ : Context) → Γ ⇉ Δ → Γ ⇉ Δ → Set where
-    simσ-ε : Γ , ∅ ⊢ ε ~ ε
+data _,_⊢_~_ : (Δ Γ : Context) → Δ ⇉ Γ → Δ ⇉ Γ → Set where
+    simσ-ε : Δ , ∅ ⊢ ε ~ ε
 
-    simσ-p : (w : Γ ⊆ Γ′)
-           --------------
-           → Γ′ , Γ ⊢ wk w ~ wk w
-
-    simσ-■ : Γ   , Δ   ⊢ σ    ~ τ 
-           -------------------------
-           → Γ ■ , Δ ■ ⊢ σ •■ ~ τ •■ 
-
-    simσ-• : Γ , Δ ⊢ σ  ~ τ
-           → Γ     ⊢ t₁ ~ t₂ ∶ A
+    simσ-• : Δ , Γ ⊢ σ  ~ τ
+           → Δ     ⊢ t₁ ~ t₂ ∶ A
            -----------------------------------
-           → Γ , (Δ , A) ⊢ (σ • t₁) ~ (τ • t₂)
+           → Δ , (Γ , A) ⊢ (σ • t₁) ~ (τ • t₂)
 
-simσ-refl : Γ , Δ ⊢ σ ~ σ
-simσ-refl {σ = ε}     = simσ-ε
-simσ-refl {σ = wk x}  = simσ-p x
-simσ-refl {σ = σ •■}  = simσ-■ simσ-refl
-simσ-refl {σ = σ • t} = simσ-• simσ-refl (sim-refl t)
+    simσ-■ : Δ₁ , Γ  ⊢ σ         ~ τ
+           → (w : Δ is Δ₁ ■ ∷ Δ₂)
+           ---------------------------------
+           → Δ , Γ ■ ⊢ σ •[ w ]■ ~ τ •[ w ]■
+
+simσ-refl : Δ , Γ ⊢ σ ~ σ
+simσ-refl {σ = ε}         = simσ-ε
+simσ-refl {σ = σ • t}     = simσ-• simσ-refl (sim-refl t)
+simσ-refl {σ = σ •[ w ]■} = simσ-■ simσ-refl w

@@ -100,10 +100,6 @@ _◦_ : Δ ⇉ Γ → θ ⇉ Δ → θ ⇉ Γ
 ... | refl = (σ ◦ τ) •[ m ]■
 
 infix 5 _[_]
--- Single varia
--- sub-refl : Γ ⇉ Γ
--- sub-refl {∅}     = ε
--- sub-refl {Γ , x} = σ+ sub-refl
--- sub-refl {Γ ■}   = sub-refl •■ble substitution on the first free variable. Used in β.
+-- Single variable substitution on the first free variable. Used in β.
 _[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
 t₁ [ t₂ ] = sub (id • t₂) t₁    
