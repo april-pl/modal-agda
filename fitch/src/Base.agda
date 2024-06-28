@@ -8,6 +8,7 @@ open import Relation.Binary.PropositionalEquality
 open import Data.Product renaming (_,_ to _،_)
 open import Data.Sum
 infixr 7 _⇒_
+
 -- Modal type constructors.
 data Type : Set where 
     Nat  : Type
