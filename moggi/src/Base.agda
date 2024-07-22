@@ -54,7 +54,7 @@ data _⊆_ : Context → Context → Set where
 ⊆-wk (⊆-keep s) = ⊆-drop s 
 
 ⊆∅ : Γ ⊆ ∅ → Γ ≡ ∅
-⊆∅ {∅} wk = refl
+⊆∅ {(∅)} wk = refl
 ⊆∅ {Γ , x} ()
 
 ⊆-assoc : Γ₁ ⊆ Γ₂ → Γ₂ ⊆ Γ₃ → Γ₁ ⊆ Γ₃
@@ -72,3 +72,14 @@ data _⊆_ : Context → Context → Set where
 Γ-weak (⊆-drop rest) x     = S (Γ-weak rest x)
 Γ-weak (⊆-keep rest) (S x) = S (Γ-weak rest x)
 Γ-weak (⊆-keep rest) Z     = Z  
+
+-- Evidence that a type is pure (non-modal)
+data pure : Type → Set where
+    pℕ  : pure Nat
+    p⇒ : pure B → pure (A ⇒ B)
+
+¬M-pure : ¬ pure (M A)
+¬M-pure () 
+
+impure : {P : Set} → pure (M A) → P
+impure ()  

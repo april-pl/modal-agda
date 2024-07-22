@@ -41,11 +41,11 @@ ius _ _ _ _ _ _ (sim-nat n) simσ = sim-nat n
 
 ius p₁ p₂ t₁ t₂ σ₁ σ₂ (sim-lock x _ _) simσ = ⊥-elim (¬■-■ p₁ x)
 
-ius p₁ p₂ _ _ _        _        (sim-var Z)     (simσ-• _ sim)    = sim
+ius p₁ p₂ _ _ _         _         (sim-var Z)     (simσ-• _ sim)    = sim
 ius p₁ p₂ _ _ (σ₁ • u₁) (σ₂ • u₂) (sim-var (S x)) (simσ-• simσ sim) = 
     ius p₁ p₂ 
-        {!   !} {!   !} 
-        (σ₁ • {!   !}) ({!   !} • {!   !}) 
+        (var (S x)) (var (S x)) 
+        {!   !} {!   !}
         {!   !} {!   !}
 
 ius p₁ p₂ (l₁ ∙ r₁) (l₂ ∙ r₂) σ₁ σ₂ (sim-app simₗ simᵣ) simσ with sit′ simₗ | sit′ simᵣ

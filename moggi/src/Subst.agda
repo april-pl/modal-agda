@@ -28,7 +28,7 @@ wk (σ • t)     = wk σ • weakening (⊆-drop ⊆-refl) t
 
 -- Identity substitution
 id : Γ ⇉ Γ
-id {∅}     = ε
+id {(∅)}   = ε
 id {Γ , x} = wk id • var Z
 
 p : Γ , A ⇉ Γ
