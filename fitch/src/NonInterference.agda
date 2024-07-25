@@ -75,12 +75,20 @@ bisim : ¬■ Γ
    → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ →β t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
 bisim prf (sim-lock ext _ _) _    = ⊥-elim (is∷-¬¬■ ext prf) 
 bisim prf sim (ξunbox {ext} step) = ⊥-elim (is∷-¬¬■ ext prf) 
+bisim prf (sim-app (sim-lock ext _ _) _) _ 
+    =  ⊥-elim (is∷-¬¬■ ext prf) 
 
-bisim prf sim βƛ = {!   !} 
+bisim {t₁ = (ƛ t₁) ∙ r₁} {t₂ = (ƛ t₂) ∙ r₂} p (sim-app (sim-lam simₗ) simᵣ) βƛ 
+    with sit′ simₗ | sit′ simᵣ 
+... | refl | refl = t₂ [ r₂ ] 
+                  ، βƛ 
+                  ، ius (¬■, p) p 
+                        t₁ t₂ (Subst.id • r₁) (Subst.id • r₂) 
+                        simₗ 
+                        (simσ-• simσ-refl simᵣ)
 
 bisim {t₁ = l₁ ∙ r₁} {t₂ = l₂ ∙ r₂} p sim@(sim-app simₗ simᵣ) (ξappl step)
                          with  sit′ sim | sit′ simₗ | sit′ simᵣ 
 ... | refl | refl | refl with bisim p simₗ step
 ... | l₂′ ، step ، sim′ = l₂′ ∙ r₂ ، ξappl step ، sim-app sim′ simᵣ
-
-bisim prf sim (ξappr step) = {!   !} 
+ 

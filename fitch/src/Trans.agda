@@ -18,7 +18,6 @@ data _→β_ : Γ ⊢ A → Γ ⊢ A → Set where
     βƛ : (ƛ t) ∙ r                  →β t [ r ]
     
     ξappl : l →β l′ → l ∙ r →β l′ ∙ r
-    ξappr : r →β r′ → l ∙ r →β l  ∙ r′
 
     -- No β under boxes, we should treat boxes as values.
     -- Otherwise box 1 ~ box ((λx. x) 1), and NI is broken. 
