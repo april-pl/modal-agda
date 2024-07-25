@@ -38,7 +38,7 @@ wk (σ •[ w ]■) = σ •[ is-ext w ]■
 
 -- Identity substitution
 id : Γ ⇉ Γ
-id {∅}     = ε
+id {(∅)}     = ε
 id {Γ , x} = wk id • var Z
 id {Γ ■}   = id •[ is-nil ]■
 

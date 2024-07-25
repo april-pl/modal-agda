@@ -14,7 +14,6 @@ private variable
     t t′ t₁ t₂ t₁′ t₂′ a a₁ a₂ a′ b b₁ b₂ b′ : _ ⊢ _
     A B : Type
     Γ Γ′ Δ Δ₁ Δ₂ Γ₁ Γ₂ θ : Context
-    □ext : Γ is Γ₁ ■ ∷ Γ₂
     σ σ′ σ₁ σ₂ τ τ′ : _ ⇉ _
 
 infix 2 _⊢_~_∶_
@@ -46,9 +45,10 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
             ----------------------------
             → Γ   ⊢ box t ~ box t′ ∶ □ A
     
-    sim-unbox : Γ   ⊢ t                    ~ t′                    ∶ □ A
+    sim-unbox : {ext : Γ is Γ₁ ■ ∷ Γ₂} →
+              Γ₁   ⊢ t                    ~ t′                    ∶ □ A
               ----------------------------------------------------------
-              → Γ ■ ⊢ unbox {ext = □ext} t ~ unbox {ext = □ext} t′ ∶ A
+              → Γ ⊢ unbox {ext = ext} t ~ unbox {ext = ext} t′ ∶ A
 
 sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
 sim-refl (nat n) = sim-nat n
@@ -93,3 +93,31 @@ simσ-refl : Δ , Γ ⊢ σ ~ σ
 simσ-refl {σ = ε}         = simσ-ε
 simσ-refl {σ = σ • t}     = simσ-• simσ-refl (sim-refl t)
 simσ-refl {σ = σ •[ w ]■} = simσ-■ simσ-refl w
+
+module Lemmas where
+    sim-weak : (t₁ t₂ : Γ ⊢ A) 
+             → (wk : Γ ⊆ Δ) 
+             → Γ ⊢ t₁ ~ t₂ ∶ A 
+             → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
+    sim-weak _ _ wk (sim-nat n) = sim-nat n
+    sim-weak _ _ wk (sim-var x) = sim-var (Γ-weak wk x)
+
+    sim-weak (ƛ t₁) (ƛ t₂) wk (sim-lam sim) = sim-lam (sim-weak t₁ t₂ (⊆-keep wk) sim)
+    
+    sim-weak (l₁ ∙ r₁)  (l₂ ∙ r₂) wk (sim-app simₗ simᵣ) with sit′ simₗ | sit′ simᵣ
+    ... | refl | refl = sim-app (sim-weak l₁ l₂ wk simₗ) 
+                                (sim-weak r₁ r₂ wk simᵣ)
+                                
+    sim-weak t₁ t₂ wk (sim-lock p _ _) with is∷-Δweak p wk 
+    ... | p′ = sim-lock p′ (weakening wk t₁) (weakening wk t₂)
+    
+    sim-weak (box t₁)   (box t₂)   wk (sim-box sim)   = sim-box (sim-weak t₁ t₂ (⊆-lock wk) sim)
+    sim-weak (unbox {ext} t₁) (unbox t₂) wk (sim-unbox sim) with is∷-Δweak ext wk
+    ... | ext′ = sim-unbox {ext = ext′} (sim-weak t₁ t₂ (is∷-←■weak ext wk) sim)
+ 
+    -- lemma-σ+ : ¬■ Γ
+    --      → ¬■ Δ
+    --      → Γ       , Δ       ⊢ σ            ~ τ
+    --      → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
+    -- lemma-σ+ p₁ p₂ simσ-ε = simσ-• simσ-ε (sim-var Z)
+    -- lemma-σ+ p₁ (¬■, p₂) (simσ-• simσ sim) = {!   !}   

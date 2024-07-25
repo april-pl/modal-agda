@@ -77,9 +77,9 @@ simσ-refl {σ = σ • t}     = simσ-• simσ-refl (sim-refl t)
 module Lemmas where
     -- Weakening is respectful
     sim-weak : (t₁ t₂ : Γ ⊢ A) 
-            → (wk : Γ ⊆ Δ) 
-            → Γ ⊢ t₁ ~ t₂ ∶ A 
-            → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
+             → (wk : Γ ⊆ Δ) 
+             → Γ ⊢ t₁ ~ t₂ ∶ A 
+             → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
     sim-weak _  _  wk (sim-nat n)        = sim-nat n
     sim-weak t₁ t₂ wk (sim-mon _ _)      = sim-mon (weakening wk t₁) (weakening wk t₂)
     sim-weak _  _  wk (sim-var x)        = sim-var (Γ-weak wk x)
@@ -92,13 +92,13 @@ module Lemmas where
 
     -- w/ implicit arguments
     sim-weak′ : {t₁ t₂ : Γ ⊢ A} 
-            → {wk : Γ ⊆ Δ}
-            → Γ ⊢ t₁ ~ t₂ ∶ A 
-            → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
+              → {wk : Γ ⊆ Δ}
+              → Γ ⊢ t₁ ~ t₂ ∶ A 
+              → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
     sim-weak′ {t₁} {t₂} {wk} sim = sim-weak t₁ t₂ wk sim
 
     -- Context weakening is respectful
-    lemma-wk : Δ       , Γ       ⊢ σ₁    ~ σ₂
+    lemma-wk : Δ       , Γ       ⊢ σ₁     ~ σ₂
              → (Δ , A) , Γ       ⊢ wk σ₁  ~ wk σ₂
     lemma-wk simσ-ε          = simσ-ε
     lemma-wk (simσ-• simσ x) = simσ-• (lemma-wk simσ) (sim-weak′ x) 
