@@ -41,41 +41,6 @@ ius (ƛ t₁) (ƛ t₂) σ₁ σ₂ (sim-lam sim) simσ with sit′ sim
 ... | refl = sim-lam (ius t₁ t₂ (σ+ σ₁) (σ+ σ₂) sim (lemma-σ+ simσ))
 
 
--- -- Non-interference for the Fitch calculus
--- ni : ¬■ Γ
---    → Γ ⊢ t₁ ~ t₂ ∶ A 
---    → t₁ →β t₁′ 
---    ------------------------------------------------------
---    → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ →β t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
--- ni prf (sim-lock ext _ _) _ = ⊥-elim (¬■-■ prf ext)
--- ni ()  (sim-unbox _)      _
--- ---------------------------------------------------
-
--- ni prf sim@(sim-app {t₁ = f₁} {f₂} {t₂ = x₁} {x₂} simƛ simᵣ) βƛ 
---                                  with sit _ _ sim | sit _ _ simƛ | sit _ _ simᵣ 
--- ... | refl | refl | refl         with simƛ 
--- ... | sim-lock ext _ _ = ⊥-elim (¬■-■ prf ext)
--- ... | sim-lam {t = b₁} {b₂} sim∘ with sit _ _ sim∘
--- ... | refl = b₂ [ x₂ ] 
---            ، βƛ 
---            ، ius (¬■, prf) prf b₁ b₂ (sub-refl • x₁) (sub-refl • x₂) sim∘ (simσ-• simσ-refl simᵣ)
-
--- ni prf sim@(sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξappl step) 
---                          with sit _ _ sim | sit _ _ simₗ | sit _ _ simᵣ 
--- ... | refl | refl | refl with ni prf simₗ step
--- ... | l₂′ ، βl₂ ، ind    with sit _ _ ind
--- ... | refl = l₂′ ∙ r₂ 
---            ، ξappl βl₂ 
---            ، sim-app ind simᵣ
-
--- ni prf sim@(sim-app {t₁ = l₁} {l₂} {t₂ = r₁} {r₂} simₗ simᵣ) (ξappr step) 
---                          with sit _ _ sim | sit _ _ simₗ | sit _ _ simᵣ 
--- ... | refl | refl | refl with ni prf simᵣ step
--- ... | r₂′ ، βr₂ ، ind    with sit _ _ ind
--- ... | refl = l₂ ∙ r₂′ 
---            ، ξappr βr₂ 
---            ، sim-app simₗ ind
-
 -- Non-interference relation is a bisimulation      
 bisim : pure A
       → Γ ⊢ t₁ ~ t₂ ∶ A 

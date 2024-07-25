@@ -83,4 +83,4 @@ bisim {t₁ = l₁ ∙ r₁} {t₂ = l₂ ∙ r₂} p sim@(sim-app simₗ simᵣ
 ... | refl | refl | refl with bisim p simₗ step
 ... | l₂′ ، step ، sim′ = l₂′ ∙ r₂ ، ξappl step ، sim-app sim′ simᵣ
 
-bisim prf sim (ξappr step) = {!   !}
+bisim prf sim (ξappr step) = {!   !} 
