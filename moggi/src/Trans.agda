@@ -17,6 +17,5 @@ data _→β_ : Γ ⊢ A → Γ ⊢ A → Set where
     
     ξbind : t →β t′ → bind t of u →β bind t′ of u 
     ξappl : l →β l′ → l ∙ r       →β l′ ∙ r
-    ξappr : r →β r′ → l ∙ r       →β l  ∙ r′
 
 

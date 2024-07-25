@@ -95,7 +95,3 @@ bisim {t₁ = l₁ ∙ r₁} {t₂ = l₂ ∙ r₂} p sim@(sim-app simₗ simᵣ
                          with  sit′ sim | sit′ simₗ | sit′ simᵣ 
 ... | refl | refl | refl with bisim (p⇒ p) simₗ step
 ... | l₂′ ، step ، sim′ = l₂′ ∙ r₂ ، ξappl step ، sim-app sim′ simᵣ
- 
-bisim {A = B} {t₁ = l₁ ∙ r₁} {t₂ = l₂ ∙ r₂} p sim@(sim-app {A = A} simₗ simᵣ) (ξappr step) with sit′ sim | sit′ simₗ | sit′ simᵣ 
-... | refl | refl | refl with bisim {!   !} simᵣ step 
-... | r₂′ ، step ، sim′ = l₂ ∙ r₂′ ، ξappr step ، sim-app simₗ sim′
