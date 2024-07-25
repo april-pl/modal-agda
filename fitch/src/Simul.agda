@@ -45,8 +45,8 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
             ----------------------------
             → Γ   ⊢ box t ~ box t′ ∶ □ A
     
-    sim-unbox : {ext : Γ is Γ₁ ■ ∷ Γ₂} →
-              Γ₁   ⊢ t                    ~ t′                    ∶ □ A
+    sim-unbox : {ext : Γ is Γ₁ ■ ∷ Γ₂} 
+              → Γ₁   ⊢ t                    ~ t′                    ∶ □ A
               ----------------------------------------------------------
               → Γ ⊢ unbox {ext = ext} t ~ unbox {ext = ext} t′ ∶ A
 
@@ -114,10 +114,22 @@ module Lemmas where
     sim-weak (box t₁)   (box t₂)   wk (sim-box sim)   = sim-box (sim-weak t₁ t₂ (⊆-lock wk) sim)
     sim-weak (unbox {ext} t₁) (unbox t₂) wk (sim-unbox sim) with is∷-Δweak ext wk
     ... | ext′ = sim-unbox {ext = ext′} (sim-weak t₁ t₂ (is∷-←■weak ext wk) sim)
+
+    sim-weak′ : {t₁ t₂ : Γ ⊢ A} 
+              → {wk : Γ ⊆ Δ}
+              → Γ ⊢ t₁ ~ t₂ ∶ A 
+              → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
+    sim-weak′ {t₁} {t₂} {wk} sim = sim-weak t₁ t₂ wk sim
+
+    simσ-weak : Δ       , Γ       ⊢ σ₁     ~ σ₂
+              → (Δ , A) , Γ       ⊢ wk σ₁  ~ wk σ₂
+    simσ-weak simσ-ε          = simσ-ε
+    simσ-weak (simσ-• simσ x) = simσ-• (simσ-weak simσ) (sim-weak′ x) 
+    simσ-weak (simσ-■ simσ w) = simσ-■ simσ (is-ext w)
  
-    -- lemma-σ+ : ¬■ Γ
-    --      → ¬■ Δ
-    --      → Γ       , Δ       ⊢ σ            ~ τ
-    --      → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
-    -- lemma-σ+ p₁ p₂ simσ-ε = simσ-• simσ-ε (sim-var Z)
-    -- lemma-σ+ p₁ (¬■, p₂) (simσ-• simσ sim) = {!   !}   
+    lemma-σ+ : Γ       , Δ       ⊢ σ            ~ τ
+         → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
+    lemma-σ+ simσ-ε = simσ-• simσ-ε (sim-var Z) 
+    lemma-σ+ (simσ-• sim x) = 
+        simσ-• (simσ-• (simσ-weak sim) (sim-weak′ x)) (sim-var Z)
+    lemma-σ+ (simσ-■ simσ w) = simσ-• (simσ-■ simσ (is-ext w)) (sim-var Z)
