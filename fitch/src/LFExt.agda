@@ -98,3 +98,7 @@ partition-locked {Γ = Γ ■}   ■-has-■     = is-nil
 is∷-locked : Γ is Γ₁ ■ ∷ Γ₂ → has-■ Γ
 is∷-locked is-nil       = ■-has-■
 is∷-locked (is-ext ext) = ,-has-■ (is∷-locked ext) 
+
+is∷-¬¬■ : Γ is Γ₁ ■ ∷ Γ₂ → ¬ ¬■ Γ
+is∷-¬¬■ is-nil       () 
+is∷-¬¬■ (is-ext ext) (¬■, p) = is∷-¬¬■ ext p
