@@ -78,7 +78,7 @@ data _⊆_ : Context → Context → Set where
 ⊆-wk (⊆-keep s) = ⊆-drop s 
 
 ⊆∅ : Γ ⊆ ∅ → Γ ≡ ∅
-⊆∅ {∅} wk = refl
+⊆∅ {(∅)} wk = refl
 ⊆∅ {Γ , x} ()
 ⊆∅ {Γ ■}   ()
 

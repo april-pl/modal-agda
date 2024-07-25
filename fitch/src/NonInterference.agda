@@ -20,12 +20,7 @@ private variable
     □ext : Γ is Γ₁ ■ ∷ Γ₂
     σ σ′ σ₁ σ₂ τ τ′ : _ ⇉ _ 
 
-lemma-σ+ : ¬■ Γ
-         → ¬■ Δ
-         → Γ       , Δ       ⊢ σ            ~ τ
-         → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
-lemma-σ+ p₁ p₂ simσ-ε = simσ-• simσ-ε (sim-var Z)
-lemma-σ+ p₁ (¬■, p₂) (simσ-• simσ sim) = {!   !}
+
 
 ius : ¬■ Γ
     → ¬■ Δ
