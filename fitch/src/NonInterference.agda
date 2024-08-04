@@ -50,29 +50,13 @@ ius p₁ p₂ (box t₁) (box t₂) σ₁ σ₂ (sim-box sim) simσ with sit′ 
 
 ius p₁ p₂ (unbox _) (unbox _) _ _ (sim-unbox {ext} _) _ = ⊥-elim (is∷-¬¬■ ext p₁)
 
--- lemma-st : (w : Δ′ ⊆ Δ) 
---             → Γ , Δ  ⊢ σ ~ τ 
---             ---------------------------------------
---             → Γ , Δ′ ⊢ ⇉-st σ w ~ ⇉-st τ w
--- lemma-st ⊆-empty simσ-ε = simσ-ε
--- --------------------------------
--- lemma-st ⊆-empty (simσ-p w₁) = simσ-ε
--- lemma-st (⊆-drop w) (simσ-p w₁) = simσ-p (⊆-assoc (⊆-drop w) w₁)
--- lemma-st (⊆-keep w) (simσ-p w₁) = simσ-p (⊆-assoc (⊆-keep w) w₁)
--- lemma-st (⊆-lock w) (simσ-p w₁) = simσ-p (⊆-assoc (⊆-lock w) w₁)
--- ----------------------------------------------------------------
--- lemma-st (⊆-lock w) (simσ-■ simσ) = simσ-■ (lemma-st w simσ)
--- ------------------------------------------------------------
--- lemma-st (⊆-drop w) (simσ-• simσ x) = lemma-st w simσ
--- lemma-st (⊆-keep w) (simσ-• simσ x) = simσ-• (lemma-st w simσ) x
-
            
 -- Non-interference for the Fitch calculus
 bisim : ¬■ Γ
    → Γ ⊢ t₁ ~ t₂ ∶ A 
-   → t₁ →β t₁′ 
+   → t₁ ↝ t₁′ 
    ------------------------------------------------------
-   → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ →β t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
+   → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝ t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
 bisim prf (sim-lock ext _ _) _    = ⊥-elim (is∷-¬¬■ ext prf) 
 bisim prf sim (ξunbox {ext} step) = ⊥-elim (is∷-¬¬■ ext prf) 
 bisim prf (sim-app (sim-lock ext _ _) _) _ 

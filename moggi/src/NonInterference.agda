@@ -4,11 +4,12 @@ open import Terms
 open import Trans
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
-open import Function
+open import Function hiding (id)
 open import Data.Bool 
 open import Data.Empty
 open import Data.Nat
 open import Data.Product renaming (_,_ to _،_)
+open import Normalisation
 open import Subst
 open import Simul
 open Simul.Lemmas
@@ -44,9 +45,9 @@ ius (ƛ t₁) (ƛ t₂) σ₁ σ₂ (sim-lam sim) simσ with sit′ sim
 -- Non-interference relation is a bisimulation      
 bisim : pure A
       → Γ ⊢ t₁ ~ t₂ ∶ A 
-      → t₁ →β t₁′ 
+      → t₁ ↝ t₁′ 
       ------------------------------------------------------
-      → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ →β t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
+      → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝ t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
 bisim {t₁ = (ƛ t₁) ∙ r₁} {t₂ = (ƛ t₂) ∙ r₂} p (sim-app (sim-lam simₗ) simᵣ) βƛ 
     with sit′ simₗ | sit′ simᵣ 
 ... | refl | refl = t₂ [ r₂ ] 
@@ -60,3 +61,15 @@ bisim {t₁ = l₁ ∙ r₁} {t₂ = l₂ ∙ r₂} p sim@(sim-app simₗ simᵣ
                          with  sit′ sim | sit′ simₗ | sit′ simᵣ 
 ... | refl | refl | refl with bisim (p⇒ p) simₗ step
 ... | l₂′ ، step ، sim′ = l₂′ ∙ r₂ ، ξappl step ، sim-app sim′ simᵣ
+
+-- If x : T (A) ` M : B for some non-monadic type B, and ` N1 , N2 : T (A), then M [N1 /x] = M [N2 /x].
+-- non-interference : (V : ∅ , M A ⊢ B) 
+--                  → (t : ∅       ⊢ M A)
+--                  → (u : ∅       ⊢ M A)
+--                  → (V [ t ] ≡ V [ u ])
+-- non-interference V t u = 
+--     let t~u = sim-mon t u
+--         V~V = sim-refl V
+--         sub = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
+--         stepl = normalising ?
+--     in {!   !}

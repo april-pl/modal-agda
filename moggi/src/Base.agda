@@ -21,6 +21,10 @@ data Context : Set where
     ∅   : Context
     _,_ : Context → Type → Context
 
+-- Syntactic sugar for one value contexts
+! : Type → Context
+! A = ∅ , A
+
 private variable
     A B : Type
     Γ Γ′ Δ Δ′ Γ₁ Γ₂ Γ₃ : Context
@@ -30,7 +34,6 @@ infixl 4 _∷_
 _∷_ : Context → Context → Context
 Γ ∷ ∅     = Γ
 Γ ∷ Δ , x = (Γ ∷ Δ) , x
-
 
 infix 4 _∈_
 -- Witnesses the membership of a variable with a given type in a context.
