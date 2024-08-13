@@ -67,7 +67,18 @@ bisim {t₁ = ƛ t₁} {t₂ = ƛ t₂} (p⇒ p) (sim-lam sim) (ξlamd step)
 ... | refl               with bisim p sim step
 ... | t₂′ ، step ، sim′ = ƛ t₂′ ، ξlamd step ، sim-lam sim′
 
--- B
+-- Multi-step bisimulation
+bisim⋆ : pure A 
+       → Γ ⊢ t₁ ~ t₂ ∶ A 
+       → t₁ ↝⋆ t₁′ 
+       ------------------------------------------------------
+       → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝⋆ t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
+bisim⋆ {t₂ = t₂} p sim ⋆refl = t₂ ، ⋆refl ، sim
+bisim⋆ p sim (⋆step step)       with bisim p sim step
+... | p′ ، sim′ ، step′    = p′ ، ⋆step sim′ ، step′
+bisim⋆ p sim (⋆trns steps step) with bisim⋆ p sim steps 
+... | t₂′ ، steps′ ، sim′        with bisim p sim′ step
+... | t₂′′ ، step′ ، sim′′ = t₂′′ ، ⋆trns steps′ step′ ، sim′′
 
 -- If x : T (A) ` M : B for some non-monadic type B, and ` N1 , N2 : T (A), then M [N1 /x] = M [N2 /x].
 -- non-interference : (V : ∅ , M A ⊢ B) 
