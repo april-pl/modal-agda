@@ -15,6 +15,7 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
     βbind : bind (η t) of u ↝ u [ t ]
     βƛ    : (ƛ t) ∙ r       ↝ t [ r ]
     
+    ξlamd : t ↝ t′ → ƛ t         ↝ ƛ t′
     ξbind : t ↝ t′ → bind t of u ↝ bind t′ of u 
     ξappl : l ↝ l′ → l ∙ r       ↝ l′ ∙ r
 
