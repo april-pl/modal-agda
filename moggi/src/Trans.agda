@@ -15,10 +15,12 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
     βbind : bind (η t) of u ↝ u [ t ]
     βƛ    : (ƛ t) ∙ r       ↝ t [ r ]
     
+    ξsucc : t ↝ t′ → suc t       ↝ suc t′
     ξbind : t ↝ t′ → bind t of u ↝ bind t′ of u 
     ξappl : l ↝ l′ → l ∙ r       ↝ l′ ∙ r
 
 -- RTC
+infix 4 _↝⋆_
 data _↝⋆_ : Γ ⊢ A → Γ ⊢ A → Set where
     ⋆refl :                    t ↝⋆ t
     ⋆step : t ↝  u          → t ↝⋆ u

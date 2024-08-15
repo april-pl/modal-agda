@@ -50,6 +50,7 @@ bisim : pure A
       → t₁ ↝ t₁′ 
       ------------------------------------------------------
       → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝ t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
+
 bisim {t₁ = (ƛ t₁) ∙ r₁} {t₂ = (ƛ t₂) ∙ r₂} p (sim-app (sim-lam simₗ) simᵣ) βƛ 
     with sit′ simₗ | sit′ simᵣ 
 ... | refl | refl = t₂ [ r₂ ] 
@@ -63,6 +64,11 @@ bisim {t₁ = l₁ ∙ r₁} {t₂ = l₂ ∙ r₂} p sim@(sim-app simₗ simᵣ
                          with  sit′ sim | sit′ simₗ | sit′ simᵣ 
 ... | refl | refl | refl with bisim (p⇒ p) simₗ step
 ... | l₂′ ، step ، sim′ = l₂′ ∙ r₂ ، ξappl step ، sim-app sim′ simᵣ
+
+bisim {t₁ = suc t₁} {t₂ = suc t₂} p (sim-suc sim) (ξsucc step) 
+           with sit′ sim 
+... | refl with bisim p sim step
+... | t₂′ ، step′ ، sim′ = suc t₂′ ، ξsucc step′ ، sim-suc sim′
 
 -- Multi-step bisimulation
 bisim⋆ : pure A 
@@ -91,6 +97,8 @@ non-interference v V t u p =
         sub = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
         Vt′ ، stepsₗ ، Vtn  = normalising (V [ t ])
         Vu′ ، stepsᵣ ، Vsim = bisim⋆ pℕ sub stepsₗ
-        eql = ind-eql Vt′ Vu′ {! normal-value Vtn  !} {!   !} {!   !}
-        -- eql = ind-eql′ p (normal-value Vt′ Vtn) (normal-value Vu′ {!   !}) Vsim 
-    in {!   !}
+        eql = ind-eql Vt′ Vu′ (normal-value Vt′ Vtn) {!   !} Vsim
+        con = confluent (V [ t ]) (stepsₗ ، Vtn) p
+    in subst (λ pr → V [ u ] ↝⋆ pr) con 
+      (subst (λ pr → V [ u ] ↝⋆ pr) (sym eql) stepsᵣ) 
+      ، proj₂ p 

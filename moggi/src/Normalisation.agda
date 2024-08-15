@@ -11,7 +11,7 @@ open import Simul
 open import Trans
 
 private variable
-    t  u  l  r  t₁  t₂  : _ ⊢ _
+    t  u  l  r  t₁  t₂  v₁  v₂ : _ ⊢ _
     t′ u′ l′ r′ t₁′ t₂′ : _ ⊢ _
     A B : Type
     Γ Γ₁ Γ₂ : Context
@@ -33,7 +33,8 @@ value-normal : Value t → normal t
 value-normal Vƛ     = λ ()
 value-normal Vη     = λ ()
 value-normal Vz     = λ ()
-value-normal (Vs v) = λ ()
+value-normal (Vs v) step with value-normal v
+value-normal (Vs v) (ξsucc step) | v′ = v′ step
 
 normal-value : (t : ∅ ⊢ A) → normal t → Value t
 normal-value zer p = Vz
@@ -44,14 +45,14 @@ normal-value (l     ∙ r)     p with normal-value l (λ s → p (ξappl s))
 normal-value ((ƛ l) ∙ r)     p | p′ = ⊥-elim (p {t′ = l [ r ]} βƛ)
 normal-value (bind t   of u) p with normal-value t (λ s → p (ξbind s)) 
 normal-value (bind η t of u) p | p′ = ⊥-elim (p {t′ = u [ t ]} βbind) 
-normal-value (suc n) p with normal-value n {! normal-suc ? ?  !} 
-... | a = {!   !}
+normal-value (suc n)         p with normal-value n (λ s → p (ξsucc s)) 
+normal-value (suc n)         p | a = Vs a
     
 
--- Well-known result, replicating this is besides the point of the project
+-- Well-known results, replicating this is besides the point of the project
 postulate
     normalising : (t : ∅ ⊢ A) → Σ[ t′ ∈ ∅ ⊢ A ] t ↝⋆ t′ × normal t′
-
+    confluent   : (t : ∅ ⊢ A) → t ⇓ v₁ → t ⇓ v₂ → v₁ ≡ v₂
 
 -- ind-eql : (t : ∅ ⊢ A) → (u : ∅ ⊢ A) → pure A → Value t → Value u → ∅ ⊢ t ~ u ∶ A  → t ≡ u
 -- ind-eql (nat x) (nat x) p        vt vu (sim-nat x)   = refl
@@ -66,4 +67,4 @@ ind-eql (suc n) (suc m) (Vs vn) (Vs vm) (sim-suc sim) with ind-eql n m vn vm sim
 ... | refl = refl 
 
 ind-eql′ : {n : ∅ ⊢ Nat} → {m : ∅ ⊢ Nat} → Value n → Value m → ∅ ⊢ n ~ m ∶ Nat → n ≡ m
-ind-eql′ {n = n} {m = m} vn vm sim = ind-eql n m vn vm sim
+ind-eql′ {n = n} {m = m} vn vm sim = ind-eql n m vn vm sim 
