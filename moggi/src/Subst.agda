@@ -51,7 +51,8 @@ p = wk id
 
 -- Parallel substitution
 sub : Γ ⇉ Δ → Δ ⊢ A → Γ ⊢ A
-sub σ (nat n) = nat n
+sub σ zer     = zer
+sub σ (suc n) = suc (sub σ n)
 ---------------------
 sub (σ • t) (var Z)     = t
 sub (σ • t) (var (S x)) = sub σ (var x)

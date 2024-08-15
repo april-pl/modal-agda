@@ -27,7 +27,9 @@ ius : (t₁ t₂ : Γ ⊢ A)
     → Δ , Γ ⊢ σ₁          ~ σ₂ 
     -----------------------------------
     → Δ     ⊢ (sub σ₁ t₁) ~ (sub σ₂ t₂) ∶ A
-ius _ _ σ₁ σ₂ (sim-nat n)     simσ = sim-nat n
+ius _       _       σ₁ σ₂ sim-zer       simσ = sim-zer
+ius (suc n) (suc m) σ₁ σ₂ (sim-suc sim) simσ = sim-suc (ius n m σ₁ σ₂ sim simσ)
+-------------------------------------------------------------------------------
 ius _ _ σ₁ σ₂ (sim-mon t₁ t₂) simσ = sim-mon (sub σ₁ t₁) (sub σ₂ t₂)
 --------------------------------------------------------------------
 ius _ _ _       _       (sim-var Z)     (simσ-• simσ x) = x
@@ -62,14 +64,33 @@ bisim {t₁ = l₁ ∙ r₁} {t₂ = l₂ ∙ r₂} p sim@(sim-app simₗ simᵣ
 ... | refl | refl | refl with bisim (p⇒ p) simₗ step
 ... | l₂′ ، step ، sim′ = l₂′ ∙ r₂ ، ξappl step ، sim-app sim′ simᵣ
 
--- If x : T (A) ` M : B for some non-monadic type B, and ` N1 , N2 : T (A), then M [N1 /x] = M [N2 /x].
--- non-interference : (V : ∅ , M A ⊢ B) 
---                  → (t : ∅       ⊢ M A)
---                  → (u : ∅       ⊢ M A)
---                  → (V [ t ] ≡ V [ u ])
--- non-interference V t u = 
---     let t~u = sim-mon t u
---         V~V = sim-refl V
---         sub = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
---         stepl = normalising ?
---     in {!   !}
+-- Multi-step bisimulation
+bisim⋆ : pure A 
+       → Γ ⊢ t₁ ~ t₂ ∶ A 
+       → t₁ ↝⋆ t₁′ 
+       ------------------------------------------------------
+       → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝⋆ t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
+bisim⋆ {t₂ = t₂} p sim ⋆refl = t₂ ، ⋆refl ، sim
+bisim⋆ p sim (⋆step step)       with bisim p sim step
+... | p′ ، sim′ ، step′    = p′ ، ⋆step sim′ ، step′
+bisim⋆ p sim (⋆trns steps step) with bisim⋆ p sim steps 
+... | t₂′ ، steps′ ، sim′        with bisim p sim′ step
+... | t₂′′ ، step′ ، sim′′ = t₂′′ ، ⋆trns steps′ step′ ، sim′′
+
+
+non-interference : (v : ∅       ⊢ Nat)
+                 → (V : ∅ , M A ⊢ Nat) 
+                 → (t : ∅       ⊢ M A)
+                 → (u : ∅       ⊢ M A)
+                 → V [ t ] ⇓ v
+                 -------------
+                 → V [ u ] ⇓ v
+non-interference v V t u p = 
+    let t~u = sim-mon t u
+        V~V = sim-refl V
+        sub = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
+        Vt′ ، stepsₗ ، Vtn  = normalising (V [ t ])
+        Vu′ ، stepsᵣ ، Vsim = bisim⋆ pℕ sub stepsₗ
+        eql = ind-eql Vt′ Vu′ {! normal-value Vtn  !} {!   !} {!   !}
+        -- eql = ind-eql′ p (normal-value Vt′ Vtn) (normal-value Vu′ {!   !}) Vsim 
+    in {!   !}

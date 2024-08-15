@@ -17,7 +17,9 @@ infix  5 η_
 infix  3 _⊢_
 -- The type of well-typed and scoped terms.
 data _⊢_ : Context → Type → Set where
-    nat   : ℕ     → Γ ⊢ Nat
+    zer   : Γ ⊢ Nat
+    suc   : Γ ⊢ Nat → Γ ⊢ Nat
+    
     var   : A ∈ Γ → Γ ⊢ A
 
     η_    : Γ ⊢ A     → Γ ⊢ M A 
@@ -38,7 +40,8 @@ data _⊢_ : Context → Type → Set where
 --     = unbox {ext = is∷-Δweak e wk} (weakening (is∷-←■weak e wk) t)
  
 weakening : Γ ⊆ Δ → Γ ⊢ A → Δ ⊢ A
-weakening wk (nat n) = nat n
+weakening wk zer     = zer
+weakening wk (suc n) = suc (weakening wk n)
 weakening wk (var x) = var (Γ-weak wk x)
 weakening wk (η t)   = η weakening wk t
 weakening wk (ƛ t)   = ƛ weakening (⊆-keep wk) t

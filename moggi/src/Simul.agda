@@ -17,9 +17,11 @@ private variable
 
 infix 2 _⊢_~_∶_
 data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → Set where
-    sim-nat : (n : ℕ) 
-            ----------
-            → Γ ⊢ nat n ~ nat n ∶ Nat
+    sim-zer : Γ ⊢ zer ~ zer ∶ Nat
+
+    sim-suc : Γ ⊢ t     ~ t′     ∶ Nat
+            --------------------------
+            → Γ ⊢ suc t ~ suc t′ ∶ Nat
 
     sim-mon : (t  : Γ ⊢ M A) 
             → (t′ : Γ ⊢ M A)
@@ -40,7 +42,8 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
             → Γ     ⊢ ƛ t ~ ƛ t′ ∶ A ⇒ B
 
 sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
-sim-refl (nat n)       = sim-nat n
+sim-refl zer           = sim-zer
+sim-refl (suc n)       = sim-suc (sim-refl n)
 sim-refl (var x)       = sim-var x
 sim-refl (η t)         = sim-mon (η t) (η t)
 sim-refl (ƛ t)         = sim-lam (sim-refl t)
@@ -48,7 +51,8 @@ sim-refl (l ∙ r)       = sim-app (sim-refl l) (sim-refl r)
 sim-refl (bind t of u) = sim-mon _ _
 
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
-sit t₁         t₂        (sim-nat n)         = refl
+sit t₁         t₂        sim-zer             = refl
+sit t₁         t₂        (sim-suc n)         = refl
 sit t₁         t₂        (sim-mon _ _)       = refl
 sit t₁         t₂        (sim-var x)         = refl
 sit (ƛ t₁)     (ƛ t₂)    (sim-lam sim)       with sit t₁ t₂ sim 
@@ -80,9 +84,11 @@ module Lemmas where
              → (wk : Γ ⊆ Δ) 
              → Γ ⊢ t₁ ~ t₂ ∶ A 
              → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
-    sim-weak _  _  wk (sim-nat n)        = sim-nat n
-    sim-weak t₁ t₂ wk (sim-mon _ _)      = sim-mon (weakening wk t₁) (weakening wk t₂)
-    sim-weak _  _  wk (sim-var x)        = sim-var (Γ-weak wk x)
+    sim-weak _       _       wk sim-zer           = sim-zer
+    sim-weak (suc n) (suc m) wk (sim-suc sim)     = sim-suc (sim-weak n m wk sim)
+    
+    sim-weak t₁ t₂ wk (sim-mon _ _) = sim-mon (weakening wk t₁) (weakening wk t₂)
+    sim-weak _  _  wk (sim-var x)   = sim-var (Γ-weak wk x)
 
     sim-weak (l₁ ∙ r₁)  (l₂ ∙ r₂) wk (sim-app simₗ simᵣ) with sit′ simₗ | sit′ simᵣ
     ... | refl | refl = sim-app (sim-weak l₁ l₂ wk simₗ) 
