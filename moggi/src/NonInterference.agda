@@ -70,6 +70,7 @@ bisim {t₁ = suc t₁} {t₂ = suc t₂} p (sim-suc sim) (ξsucc step)
 ... | refl with bisim p sim step
 ... | t₂′ ، step′ ، sim′ = suc t₂′ ، ξsucc step′ ، sim-suc sim′
 
+
 -- Multi-step bisimulation
 bisim⋆ : pure A 
        → Γ ⊢ t₁ ~ t₂ ∶ A 
@@ -97,7 +98,8 @@ non-interference v V t u p =
         sub = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
         Vt′ ، stepsₗ ، Vtn  = normalising (V [ t ])
         Vu′ ، stepsᵣ ، Vsim = bisim⋆ pℕ sub stepsₗ
-        eql = ind-eql Vt′ Vu′ (normal-value Vt′ Vtn) {!   !} Vsim
+        Vtv = normal-value Vt′ Vtn
+        eql = ind-eql Vt′ Vu′ Vtv (sim-value Vt′ Vu′ Vsim Vtv) Vsim
         con = confluent (V [ t ]) (stepsₗ ، Vtn) p
     in subst (λ pr → V [ u ] ↝⋆ pr) con 
       (subst (λ pr → V [ u ] ↝⋆ pr) (sym eql) stepsᵣ) 

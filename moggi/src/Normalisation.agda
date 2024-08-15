@@ -68,3 +68,13 @@ ind-eql (suc n) (suc m) (Vs vn) (Vs vm) (sim-suc sim) with ind-eql n m vn vm sim
 
 ind-eql′ : {n : ∅ ⊢ Nat} → {m : ∅ ⊢ Nat} → Value n → Value m → ∅ ⊢ n ~ m ∶ Nat → n ≡ m
 ind-eql′ {n = n} {m = m} vn vm sim = ind-eql n m vn vm sim 
+
+sim-value : (n : ∅ ⊢ Nat) 
+          → (m : ∅ ⊢ Nat)
+          → ∅ ⊢ n ~ m ∶ Nat 
+          → Value n 
+          ---------
+          → Value m
+sim-value zer zer sim Vz = Vz
+sim-value (suc n) (suc m) (sim-suc sim) (Vs vn) with sim-value n m sim vn 
+... | v = Vs v
