@@ -80,15 +80,24 @@ bisim⋆ p sim (⋆trns steps step) with bisim⋆ p sim steps
 ... | t₂′ ، steps′ ، sim′        with bisim p sim′ step
 ... | t₂′′ ، step′ ، sim′′ = t₂′′ ، ⋆trns steps′ step′ ، sim′′
 
+bisim-normal : pure A 
+             → Γ ⊢ t₁ ~ t₂ ∶ A 
+             → t₁ ↝⋆ t₁′
+             → normal t₁′
+             ------------
+             → normal (proj₂ )
+
 -- If x : T (A) ` M : B for some non-monadic type B, and ` N1 , N2 : T (A), then M [N1 /x] = M [N2 /x].
--- non-interference : (V : ∅ , M A ⊢ B) 
---                  → (t : ∅       ⊢ M A)
---                  → (u : ∅       ⊢ M A)
---                  → (V [ t ] ≡ V [ u ])
--- non-interference V t u = 
---     let t~u = sim-mon t u
---         V~V = sim-refl V
---         sub = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
---         Vt′ ، step ، Vtn  = normalising (V [ t ])
---         Vu′ ، step ، Vsim = bisim ? ? 
---     in {!   !}
+non-interference : pure B
+                 → (V : ∅ , M A ⊢ B) 
+                 → (t : ∅       ⊢ M A)
+                 → (u : ∅       ⊢ M A)
+                 → (V [ t ] ≡ V [ u ])
+non-interference p V t u = 
+    let t~u = sim-mon t u
+        V~V = sim-refl V
+        sub = ius V V (id • t) ( id • u) V~V (simσ-• simσ-ε t~u)
+        Vt′ ، stepsₗ ، Vtn  = normalising (V [ t ])
+        Vu′ ، stepsᵣ ، Vsim = bisim⋆ p sub stepsₗ
+        eql = ind-eql′ p (normal-value Vt′ Vtn) (normal-value Vu′ {!   !}) Vsim 
+    in {!   !} 
