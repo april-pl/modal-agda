@@ -3,7 +3,7 @@ mkdir lagda
 function agda_latex {
     cd $1
     for f in src/*.agda; do
-        agda --latex $f
+        agda --latex --only-scope-checking $f
     done
     cd ..
 }

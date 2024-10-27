@@ -11,7 +11,7 @@ open import Simul
 open import Trans
 
 private variable
-    t  u  l  r  t₁  t₂  v₁  v₂ : _ ⊢ _
+    t  u  l  r  t₁  t₂  u₁  u₂  v₁  v₂  w : _ ⊢ _
     t′ u′ l′ r′ t₁′ t₂′ : _ ⊢ _
     A B : Type
     Γ Γ₁ Γ₂ : Context
@@ -47,7 +47,36 @@ normal-value (bind t   of u) p with normal-value t (λ s → p (ξbind s))
 normal-value (bind η t of u) p | p′ = ⊥-elim (p {t′ = u [ t ]} βbind) 
 normal-value (suc n)         p with normal-value n (λ s → p (ξsucc s)) 
 normal-value (suc n)         p | a = Vs a
-    
+
+module confluence-proof where
+    -- Indexed n-step reduction
+    data _↝[_]_ : Γ ⊢ A → ℕ → Γ ⊢ A → Set where
+        stepz : t ↝[ 0 ] t
+        steps : {n : ℕ} 
+              → t ↝[ n ] u 
+              → u ↝ w 
+              ---------------
+              → t ↝[ suc n ] w
+
+    -- Single step determinism
+    deterministic : t ↝ u₁ → t ↝ u₂ → u₁ ≡ u₂
+    deterministic βbind      βbind      = refl
+    deterministic βƛ         βƛ         = refl
+    deterministic (ξsucc s₁) (ξsucc s₂) with deterministic s₁ s₂
+    ... | refl = refl
+    deterministic (ξbind s₁) (ξbind s₂) with deterministic s₁ s₂
+    ... | refl = refl
+    deterministic (ξappl s₁) (ξappl s₂) with deterministic s₁ s₂
+    ... | refl = refl
+
+    -- N-step determinism
+    deterministic[] : (n : ℕ) → t ↝[ n ] u₁ → t ↝[ n ] u₂ → u₁ ≡ u₂
+    deterministic[] zero stepz stepz = refl
+    deterministic[] (suc n) (steps s₁ s₁′) (steps s₂ s₂′) 
+               with deterministic[] n s₁ s₂
+    ... | refl with deterministic s₁′ s₂′ 
+    ... | refl = refl
+
 
 -- Well-known results, replicating this is besides the point of the project
 postulate
