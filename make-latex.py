@@ -50,5 +50,5 @@ def compile_agda_project(dir, output):
 
 os.makedirs("latex/moggi", exist_ok=True)
 compile_agda_project("moggi", "latex/moggi")
-os.makedirs("latex/fitch", exist_ok=True)
-compile_agda_project("fitch", "latex/fitch")
+# os.makedirs("latex/fitch", exist_ok=True)
+# compile_agda_project("fitch", "latex/fitch")
