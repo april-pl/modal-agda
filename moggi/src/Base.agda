@@ -5,16 +5,20 @@ open import Data.Bool
 open import Data.Empty
 open import Data.Unit
 open import Relation.Binary.PropositionalEquality
-open import Data.Product renaming (_,_ to _،_)
+open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 open import Data.Sum
-infixr 7 _⇒_
 
+infixr 7 _⇒_
+infixr 7 _×_
+infixr 7 _+_
 -- infixl 2 T_
 -- Modal type constructors.
 data Type : Set where 
     Nat  : Type
     M    : Type → Type
     _⇒_ : Type → Type → Type
+    _×_  : Type → Type → Type
+    _+_  : Type → Type → Type  
 
 infixl 5 _,_
 data Context : Set where

@@ -1,19 +1,18 @@
 module Terms where
 open import Base
-open import Data.Nat 
 open import Data.Unit
 open import Data.Empty
-open import Function.Base
 open import Relation.Binary.PropositionalEquality
-open import Data.Product renaming (_,_ to _،_)
+open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 
 private variable
-    A B T U : Type
+    A B C T U : Type
     Γ Δ Γ₁ Γ₂ : Context
 
 infixl 6 _∙_
 infix  5 ƛ_
 infix  5 η_
+infix  5 case_of_,_
 infix  3 _⊢_
 -- The type of well-typed and scoped terms.
 data _⊢_ : Context → Type → Set where
@@ -29,16 +28,14 @@ data _⊢_ : Context → Type → Set where
 
     bind_of_ : Γ ⊢ M A → Γ , A ⊢ M B → Γ ⊢ M B
 
+    case_of_,_ : Γ ⊢ A + B → Γ , A ⊢ C → Γ , B ⊢ C → Γ ⊢ C
+    inl : Γ ⊢ A → Γ ⊢ A + B
+    inr : Γ ⊢ B → Γ ⊢ A + B
 
--- weakening : Γ ⊆ Δ → Γ ⊢ A → Δ ⊢ A
--- weakening wk (nat n) = nat n
--- weakening wk (var x) = var (Γ-weak wk x)
--- weakening wk (l ∙ r) = (weakening wk l) ∙ (weakening wk r)
--- weakening wk (ƛ t)   = ƛ weakening (⊆-keep wk) t
--- weakening wk (box t) = box (weakening (⊆-lock wk) t)
--- weakening wk (unbox {ext = e} t) 
---     = unbox {ext = is∷-Δweak e wk} (weakening (is∷-←■weak e wk) t)
- 
+    ⟨_,_⟩ : Γ ⊢ A → Γ ⊢ B → Γ ⊢ A × B
+    π₁ : Γ ⊢ A × B → Γ ⊢ A
+    π₂ : Γ ⊢ A × B → Γ ⊢ B
+
 weakening : Γ ⊆ Δ → Γ ⊢ A → Δ ⊢ A
 weakening wk zer     = zer
 weakening wk (suc n) = suc (weakening wk n)
@@ -48,3 +45,10 @@ weakening wk (ƛ t)   = ƛ weakening (⊆-keep wk) t
 weakening wk (l ∙ r) = weakening wk l ∙ weakening wk r
 weakening wk (bind t of u) 
     = bind (weakening wk t) of (weakening (⊆-keep wk) u) 
+weakening wk (inl t) = inl (weakening wk t)
+weakening wk (inr t) = inr (weakening wk t)
+weakening wk (case t of l , r) 
+    = case weakening wk t of weakening (⊆-keep wk) l , weakening (⊆-keep wk) r
+weakening wk ⟨ t , t₁ ⟩ = ⟨ weakening wk t , weakening wk t₁ ⟩
+weakening wk (π₁ t)     = π₁ (weakening wk t)
+weakening wk (π₂ t)     = π₂ (weakening wk t) 

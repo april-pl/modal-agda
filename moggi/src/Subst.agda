@@ -5,7 +5,7 @@ open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Bool
 open import Data.Unit
 open import Data.Empty
-open import Data.Product renaming (_,_ to _،_)
+open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 open import Data.Sum
 
 private variable
@@ -63,10 +63,18 @@ sub σ (l ∙ r) = sub σ l ∙ sub σ r
 sub σ (ƛ t) = ƛ sub (σ+ σ) t
 ----------------------------
 sub σ (bind t of u) = bind (sub σ t) of sub (σ+ σ) u 
+----------------------------------------------------
+sub σ (case t of l , r) = case sub σ t of sub (σ+ σ) l , sub (σ+ σ) r
+sub σ ⟨ l , r ⟩         = ⟨ sub σ l , sub σ r ⟩
+-----------------------------------------------
+sub σ (inl t) = inl (sub σ t)
+sub σ (inr t) = inr (sub σ t)
+sub σ (π₁ t)  = π₁ (sub σ t)
+sub σ (π₂ t)  = π₂ (sub σ t)
 
 -- Composition of substitutions
 _◦_ : Δ ⇉ Γ → θ ⇉ Δ → θ ⇉ Γ
-ε       ◦ τ = ε
+ε       ◦ τ = ε 
 (σ • t) ◦ τ = (σ ◦ τ) • sub τ t
 
 infix 5 _[_]

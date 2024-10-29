@@ -14,10 +14,23 @@ infix 4 _↝_
 data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
     βbind : bind (η t) of u ↝ u [ t ]
     βƛ    : (ƛ t) ∙ r       ↝ t [ r ]
-    
+
+    βinl : case (inl t) of l , r ↝ l [ t ]  
+    βinr : case (inr t) of l , r ↝ r [ t ]
+
+    βπ₁ : π₁ ⟨ t , u ⟩ ↝ t
+    βπ₂ : π₂ ⟨ t , u ⟩ ↝ u
+
     ξsucc : t ↝ t′ → suc t       ↝ suc t′
     ξbind : t ↝ t′ → bind t of u ↝ bind t′ of u 
     ξappl : l ↝ l′ → l ∙ r       ↝ l′ ∙ r
+    
+    ξcase : t ↝ t′ → case t of l , r ↝ case t′ of l , r
+    -- ξinl  : t ↝ t′ → inl t           ↝ inl t′
+    -- ξinr  : t ↝ t′ → inr t           ↝ inr t′
+
+    ξπ₁ : t ↝ t′ → π₁ t ↝ π₁ t′
+    ξπ₂ : t ↝ t′ → π₂ t ↝ π₂ t′
 
 -- RTC
 infix 4 _↝⋆_

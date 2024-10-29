@@ -5,7 +5,7 @@ open import Data.Bool
 open import Data.Empty
 open import Data.Unit
 open import Relation.Binary.PropositionalEquality
-open import Data.Product renaming (_,_ to _،_)
+open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 open import Data.Sum
 infixr 7 _⇒_
 

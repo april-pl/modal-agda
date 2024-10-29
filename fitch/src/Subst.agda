@@ -6,7 +6,7 @@ open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Bool
 open import Data.Unit
 open import Data.Empty
-open import Data.Product renaming (_,_ to _،_)
+open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 open import Data.Sum
 
 private variable

@@ -8,7 +8,7 @@ open import Function hiding (id)
 open import Data.Bool 
 open import Data.Empty
 open import Data.Nat
-open import Data.Product renaming (_,_ to _،_)
+open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 open import Normalisation
 open import Subst
 open import Simul
@@ -86,6 +86,7 @@ bisim⋆ p sim (⋆trns steps step) with bisim⋆ p sim steps
 
 
 non-interference : (v : ∅       ⊢ Nat)
+                --  → v 
                  → (V : ∅ , M A ⊢ Nat) 
                  → (t : ∅       ⊢ M A)
                  → (u : ∅       ⊢ M A)
