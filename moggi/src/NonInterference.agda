@@ -93,16 +93,14 @@ non-interference : (v : ∅       ⊢ Nat)
                  -------------
                  → V [ u ] ⇓ v
 non-interference v V t u V[t]-reduces = 
-    let t~u                          = sim-mon t u
+    let stepsₗ ، v-normal             = V[t]-reduces
+        t~u                          = sim-mon t u
         V~V                          = sim-refl V
         V[t]~V[u]                    = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
-        V[t]′ ، stepsₗ ، V[t]′-normal = normalising (V [ t ])
-        V[t]′-value                  = normal-value V[t]′ V[t]′-normal
-        V[u]′ ، stepsᵣ ، V[t]′~V[u]′  = bisim⋆ pℕ V[t]~V[u] stepsₗ
-        V[u]′-value                  = sim-value V[t]′ V[u]′ V[t]′~V[u]′ V[t]′-value
-        V[t]′≡V[u]′                  = ind-eql V[t]′ V[u]′ V[t]′-value V[u]′-value V[t]′~V[u]′
+        v-value                      = normal-value v v-normal
+        V[u]′ ، stepsᵣ ، v~V[u]′      = bisim⋆ pℕ V[t]~V[u] stepsₗ
+        V[u]′-value                  = sim-value v V[u]′ v~V[u]′ v-value
+        v≡V[u]′                      = ind-eql v V[u]′ v-value V[u]′-value v~V[u]′
         
-        V[t]′≡v                      = confluent (V [ t ]) (stepsₗ ، V[t]′-normal) V[t]-reduces
-        V[u]′≡v                      = trans (sym V[t]′≡V[u]′) V[t]′≡v
-        V[u]↝⋆v                     = subst (λ p → V [ u ] ↝⋆ p) V[u]′≡v stepsᵣ
+        V[u]↝⋆v                     = subst (λ p → V [ u ] ↝⋆ p) (sym v≡V[u]′) stepsᵣ
     in V[u]↝⋆v ، proj₂ V[t]-reduces

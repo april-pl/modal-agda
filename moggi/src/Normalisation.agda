@@ -48,47 +48,6 @@ normal-value (bind η t of u) p | p′ = ⊥-elim (p {t′ = u [ t ]} βbind)
 normal-value (suc n)         p with normal-value n (λ s → p (ξsucc s)) 
 normal-value (suc n)         p | a = Vs a
 
-module confluence-proof where
-    -- Indexed n-step reduction
-    data _↝[_]_ : Γ ⊢ A → ℕ → Γ ⊢ A → Set where
-        stepz : t ↝[ 0 ] t
-        steps : {n : ℕ} 
-              → t ↝[ n ] u 
-              → u ↝ w 
-              ---------------
-              → t ↝[ suc n ] w
-
-    -- Single step determinism
-    deterministic : t ↝ u₁ → t ↝ u₂ → u₁ ≡ u₂
-    deterministic βbind      βbind      = refl
-    deterministic βƛ         βƛ         = refl
-    deterministic (ξsucc s₁) (ξsucc s₂) with deterministic s₁ s₂
-    ... | refl = refl
-    deterministic (ξbind s₁) (ξbind s₂) with deterministic s₁ s₂
-    ... | refl = refl
-    deterministic (ξappl s₁) (ξappl s₂) with deterministic s₁ s₂
-    ... | refl = refl
-
-    -- N-step determinism
-    deterministic[] : (n : ℕ) → t ↝[ n ] u₁ → t ↝[ n ] u₂ → u₁ ≡ u₂
-    deterministic[] zero stepz stepz = refl
-    deterministic[] (suc n) (steps s₁ s₁′) (steps s₂ s₂′) 
-               with deterministic[] n s₁ s₂
-    ... | refl with deterministic s₁′ s₂′ 
-    ... | refl = refl
-
-
--- Well-known results, replicating this is besides the point of the project
-postulate
-    normalising : (t : ∅ ⊢ A) → Σ[ t′ ∈ ∅ ⊢ A ] t ↝⋆ t′ × normal t′
-    confluent   : (t : ∅ ⊢ A) → t ⇓ v₁ → t ⇓ v₂ → v₁ ≡ v₂
-
--- ind-eql : (t : ∅ ⊢ A) → (u : ∅ ⊢ A) → pure A → Value t → Value u → ∅ ⊢ t ~ u ∶ A  → t ≡ u
--- ind-eql (nat x) (nat x) p        vt vu (sim-nat x)   = refl
--- ind-eql (η t)   (η u)   p        vt vu (sim-mon _ _) = impure p
--- ind-eql (ƛ t)   (ƛ u)   (p⇒ p₁) vt vu (sim-lam sim) = {!   !}
--- ... | a = {! sim  !}
-
 -- Indistinguishability is syntactic equality on values
 ind-eql : (n : ∅ ⊢ Nat) → (m : ∅ ⊢ Nat) → Value n → Value m → ∅ ⊢ n ~ m ∶ Nat → n ≡ m
 ind-eql zer     zer     Vz      Vz      sim-zer       = refl
