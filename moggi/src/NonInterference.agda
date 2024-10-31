@@ -127,7 +127,6 @@ bisim⋆ p sim (⋆trns steps step) with bisim⋆ p sim steps
 
 
 non-interference : (v : ∅       ⊢ Nat)
-                --  → v 
                  → (V : ∅ , M A ⊢ Nat) 
                  → (t : ∅       ⊢ M A)
                  → (u : ∅       ⊢ M A)

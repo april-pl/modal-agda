@@ -9,7 +9,7 @@ open import Function
 open import Data.Bool 
 open import Data.Empty
 open import Data.Nat
-open import Data.Product hiding (_×_) renaming (_,_ to _،_)
+open import Data.Product renaming (_,_ to _،_; _×_ to _×′_)
 open import Subst
 open import Simul
 open Lemmas
@@ -30,7 +30,8 @@ ius : ¬■ Γ
     -----------------------------------
     → Δ     ⊢ (sub σ₁ t₁) ~ (sub σ₂ t₂) ∶ A
 
-ius _ _ _ _ _ _ (sim-nat n) simσ = sim-nat n
+ius _  _  _       _       σ₁ σ₂ sim-zer       simσ = sim-zer
+ius p₁ p₂ (suc n) (suc m) σ₁ σ₂ (sim-suc sim) simσ = sim-suc (ius p₁ p₂ n m σ₁ σ₂ sim simσ)
 
 ius p₁ p₂ t₁ t₂ σ₁ σ₂ (sim-lock x _ _) simσ = ⊥-elim (¬■-■ p₁ x)
 
@@ -56,7 +57,7 @@ bisim : ¬■ Γ
    → Γ ⊢ t₁ ~ t₂ ∶ A 
    → t₁ ↝ t₁′ 
    ------------------------------------------------------
-   → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝ t₂′) × (Γ ⊢ t₁′ ~ t₂′ ∶ A))
+   → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝ t₂′) ×′ (Γ ⊢ t₁′ ~ t₂′ ∶ A))
 bisim prf (sim-lock ext _ _) _    = ⊥-elim (is∷-¬¬■ ext prf) 
 bisim prf sim (ξunbox {ext} step) = ⊥-elim (is∷-¬¬■ ext prf) 
 bisim prf (sim-app (sim-lock ext _ _) _) _ 

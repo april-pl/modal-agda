@@ -18,9 +18,11 @@ private variable
 
 infix 2 _⊢_~_∶_
 data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → Set where
-    sim-nat : (n : ℕ) 
-            ----------
-            → Γ ⊢ nat n ~ nat n ∶ Nat
+    sim-zer : Γ ⊢ zer ~ zer ∶ Nat
+
+    sim-suc : Γ ⊢ t     ~ t′     ∶ Nat
+            --------------------------
+            → Γ ⊢ suc t ~ suc t′ ∶ Nat
 
     sim-lock : Γ is Γ₁ ■ ∷ Γ₂
              → (t  : Γ ⊢ A) 
@@ -51,7 +53,8 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
               → Γ ⊢ unbox {ext = ext} t ~ unbox {ext = ext} t′ ∶ A
 
 sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
-sim-refl (nat n) = sim-nat n
+sim-refl zer     = sim-zer
+sim-refl (suc n) = sim-suc (sim-refl n)
 sim-refl (var x) = sim-var x
 sim-refl (ƛ t)   = sim-lam (sim-refl t)
 sim-refl (box t) = sim-box (sim-refl t)
@@ -61,7 +64,8 @@ sim-refl (unbox {ext = e} t)
 
 -- Simulation implies typing, used to coax agda into unifying types of simulations.
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
-sit t₁         t₂         (sim-nat n)                               = refl
+sit _          _          sim-zer                                   = refl
+sit _          _          (sim-suc n)                               = refl
 sit t₁         t₂         (sim-lock x _ _)                          = refl
 sit t₁         t₂         (sim-var x)                               = refl
 sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)       rewrite sit t₁ t₂ sim = refl
@@ -99,7 +103,8 @@ module Lemmas where
              → (wk : Γ ⊆ Δ) 
              → Γ ⊢ t₁ ~ t₂ ∶ A 
              → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
-    sim-weak _ _ wk (sim-nat n) = sim-nat n
+    sim-weak _       _       wk sim-zer           = sim-zer
+    sim-weak (suc n) (suc m) wk (sim-suc sim)     = sim-suc (sim-weak n m wk sim)
     sim-weak _ _ wk (sim-var x) = sim-var (Γ-weak wk x)
 
     sim-weak (ƛ t₁) (ƛ t₂) wk (sim-lam sim) = sim-lam (sim-weak t₁ t₂ (⊆-keep wk) sim)

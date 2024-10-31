@@ -66,8 +66,6 @@ normal-value (π₂ ⟨ l , r ⟩)          p | V× = ⊥-elim (p βπ₂)
 normal-value (suc n)                 p with normal-value n (λ s → p (ξsucc s)) 
 normal-value (suc n)                 p | a = Vs a
 
-
-
 -- Indistinguishability is syntactic equality on values
 ind-eql : (n : ∅ ⊢ Nat) → (m : ∅ ⊢ Nat) → Value n → Value m → ∅ ⊢ n ~ m ∶ Nat → n ≡ m
 ind-eql zer     zer     Vz      Vz      sim-zer       = refl

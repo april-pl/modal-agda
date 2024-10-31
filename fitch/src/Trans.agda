@@ -5,8 +5,8 @@ open import Subst
 open import LFExt
 
 private variable
-    t  l  r  t₁  t₂  : _ ⊢ _
-    t′ l′ r′ t₁′ t₂′ : _ ⊢ _
+    t  u  v  l  r  t₁  t₂  : _ ⊢ _
+    t′ u′ v′ l′ r′ t₁′ t₂′ : _ ⊢ _
     A B : Type
     Γ Γ₁ Γ₂ : Context
     ext : Γ is Γ₁ ■ ∷ Γ₂
@@ -23,3 +23,9 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
     -- Otherwise box 1 ~ box ((λx. x) 1), and NI is broken. 
     -- ξbox   : t ↝ t′ → box   t ↝ box   t′
     ξunbox : t ↝ t′ → unbox {ext = ext} t ↝ unbox {ext = ext} t′
+
+infix 4 _↝⋆_
+data _↝⋆_ : Γ ⊢ A → Γ ⊢ A → Set where
+    ⋆refl :                    t ↝⋆ t
+    ⋆step : t ↝  u          → t ↝⋆ u
+    ⋆trns : t ↝⋆ u → u ↝ v → t ↝⋆ v
