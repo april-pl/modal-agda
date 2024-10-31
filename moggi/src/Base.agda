@@ -84,6 +84,8 @@ data _⊆_ : Context → Context → Set where
 data pure : Type → Set where
     pℕ  : pure Nat
     p⇒ : pure B → pure (A ⇒ B)
+    p× : pure (A × B)
+    p+ : pure (A + B)
 
 ¬M-pure : ¬ pure (M A)
 ¬M-pure () 
