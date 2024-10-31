@@ -26,8 +26,8 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
     ξappl : l ↝ l′ → l ∙ r       ↝ l′ ∙ r
     
     ξcase : t ↝ t′ → case t of l , r ↝ case t′ of l , r
-    -- ξinl  : t ↝ t′ → inl t           ↝ inl t′
-    -- ξinr  : t ↝ t′ → inr t           ↝ inr t′
+    -- ξinl  : {B : Type} → t ↝ t′ → inl {B = B} t ↝ inl {B = B} t′
+    -- ξinr  : {A : Type} → t ↝ t′ → inr {A = A} t ↝ inr {A = A} t′
 
     ξπ₁ : t ↝ t′ → π₁ t ↝ π₁ t′
     ξπ₂ : t ↝ t′ → π₂ t ↝ π₂ t′

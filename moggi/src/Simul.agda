@@ -120,42 +120,57 @@ simσ-refl : Δ , Γ ⊢ σ ~ σ
 simσ-refl {σ = ε}         = simσ-ε
 simσ-refl {σ = σ • t}     = simσ-• simσ-refl (sim-refl t)
 
--- -- Lemmas regarding simulation 
--- module Lemmas where
---     -- Weakening is respectful
---     sim-weak : (t₁ t₂ : Γ ⊢ A) 
---              → (wk : Γ ⊆ Δ) 
---              → Γ ⊢ t₁ ~ t₂ ∶ A 
---              → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
---     sim-weak _       _       wk sim-zer           = sim-zer
---     sim-weak (suc n) (suc m) wk (sim-suc sim)     = sim-suc (sim-weak n m wk sim)
+-- Lemmas regarding simulation 
+module Lemmas where
+    -- Weakening is respectful
+    sim-weak : (t₁ t₂ : Γ ⊢ A) 
+             → (wk : Γ ⊆ Δ) 
+             → Γ ⊢ t₁ ~ t₂ ∶ A 
+             → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
+    sim-weak _       _       wk sim-zer           = sim-zer
+    sim-weak (suc n) (suc m) wk (sim-suc sim)     = sim-suc (sim-weak n m wk sim)
     
---     sim-weak t₁ t₂ wk (sim-mon _ _) = sim-mon (weakening wk t₁) (weakening wk t₂)
---     sim-weak _  _  wk (sim-var x)   = sim-var (Γ-weak wk x)
+    sim-weak t₁ t₂ wk (sim-mon _ _) = sim-mon (weakening wk t₁) (weakening wk t₂)
+    sim-weak _  _  wk (sim-var x)   = sim-var (Γ-weak wk x)
 
---     sim-weak (l₁ ∙ r₁)  (l₂ ∙ r₂) wk (sim-app simₗ simᵣ) with sit′ simₗ | sit′ simᵣ
---     ... | refl | refl = sim-app (sim-weak l₁ l₂ wk simₗ) 
---                                 (sim-weak r₁ r₂ wk simᵣ)
+    sim-weak (l₁ ∙ r₁)  (l₂ ∙ r₂) wk (sim-app simₗ simᵣ) with sit′ simₗ | sit′ simᵣ
+    ... | refl | refl = sim-app (sim-weak l₁ l₂ wk simₗ) 
+                                (sim-weak r₁ r₂ wk simᵣ)
+
+    sim-weak (ƛ t₁) (ƛ t₂) wk (sim-lam sim) = sim-lam (sim-weak t₁ t₂ (⊆-keep wk) sim)
+
+    sim-weak (⟨ l₁ , r₁ ⟩) (⟨ l₂ , r₂ ⟩) wk (sim-mul sim sim₁) 
+        = sim-mul (sim-weak l₁ l₂ wk sim) (sim-weak r₁ r₂ wk sim₁)
+        
+    sim-weak (π₁ t₁) (π₁ t₂) wk (sim-pi1 sim) with sit′ sim
+    ... | refl = sim-pi1 (sim-weak t₁ t₂ wk sim)
+    sim-weak (π₂ t₁) (π₂ t₂) wk (sim-pi2 sim) with sit′ sim
+    ... | refl = sim-pi2 (sim-weak t₁ t₂ wk sim)
+
+    sim-weak (case t₁ of l₁ , r₁) (case t₂ of l₂ , r₂) wk (sim-cof sim sim₁ sim₂) 
+        = sim-cof (sim-weak t₁ t₂ wk sim) (sim-weak l₁ l₂ (⊆-keep wk) sim₁) (sim-weak r₁ r₂ (⊆-keep wk) sim₂)
+    
+    sim-weak (inl t₁) (inl t₂) wk (sim-inl sim) = sim-inl (sim-weak t₁ t₂ wk sim)
+    sim-weak (inr t₁) (inr t₂) wk (sim-inr sim) = sim-inr (sim-weak t₁ t₂ wk sim)
                                 
---     sim-weak (ƛ t₁) (ƛ t₂) wk (sim-lam sim) = sim-lam (sim-weak t₁ t₂ (⊆-keep wk) sim)
 
---     -- w/ implicit arguments
---     sim-weak′ : {t₁ t₂ : Γ ⊢ A} 
---               → {wk : Γ ⊆ Δ}
---               → Γ ⊢ t₁ ~ t₂ ∶ A 
---               → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
---     sim-weak′ {t₁} {t₂} {wk} sim = sim-weak t₁ t₂ wk sim
+    -- w/ implicit arguments
+    sim-weak′ : {t₁ t₂ : Γ ⊢ A} 
+              → {wk : Γ ⊆ Δ}
+              → Γ ⊢ t₁ ~ t₂ ∶ A 
+              → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
+    sim-weak′ {t₁} {t₂} {wk} sim = sim-weak t₁ t₂ wk sim
 
---     -- Context weakening is respectful
---     lemma-wk : Δ       , Γ       ⊢ σ₁     ~ σ₂
---              → (Δ , A) , Γ       ⊢ wk σ₁  ~ wk σ₂
---     lemma-wk simσ-ε          = simσ-ε
---     lemma-wk (simσ-• simσ x) = simσ-• (lemma-wk simσ) (sim-weak′ x) 
+    -- Context weakening is respectful
+    lemma-wk : Δ       , Γ       ⊢ σ₁     ~ σ₂
+             → (Δ , A) , Γ       ⊢ wk σ₁  ~ wk σ₂
+    lemma-wk simσ-ε          = simσ-ε
+    lemma-wk (simσ-• simσ x) = simσ-• (lemma-wk simσ) (sim-weak′ x) 
 
---     -- As above
---     lemma-σ+ : Γ       , Δ       ⊢ σ            ~ τ
---          → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
---     lemma-σ+ simσ-ε         = simσ-• simσ-ε (sim-var Z) 
---     lemma-σ+ (simσ-• sim x) = 
---         simσ-• (simσ-• (lemma-wk sim) (sim-weak′ x)) 
---                (sim-var Z)
+    -- As above 
+    lemma-σ+ : Γ       , Δ       ⊢ σ            ~ τ
+         → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
+    lemma-σ+ simσ-ε         = simσ-• simσ-ε (sim-var Z) 
+    lemma-σ+ (simσ-• sim x) = 
+        simσ-• (simσ-• (lemma-wk sim) (sim-weak′ x)) 
+               (sim-var Z) 
