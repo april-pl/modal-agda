@@ -81,6 +81,6 @@ sim-value : (n : ∅ ⊢ Nat)
           → Value n 
           ---------
           → Value m
-sim-value zer zer sim Vz = Vz
+sim-value zer zer sim-zer Vz = Vz
 sim-value (suc n) (suc m) (sim-suc sim) (Vs vn) with sim-value n m sim vn 
 ... | v = Vs v 

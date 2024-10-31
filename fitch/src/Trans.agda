@@ -17,6 +17,7 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
     β■ : unbox {ext = ext} (box t) ↝ t
     βƛ : (ƛ t) ∙ r                  ↝ t [ r ]
     
+    ξsucc : t ↝ t′ → suc t       ↝ suc t′
     ξappl : l ↝ l′ → l ∙ r ↝ l′ ∙ r
 
     -- No β under boxes, we should treat boxes as values.

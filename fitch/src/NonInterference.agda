@@ -77,3 +77,42 @@ bisim {t₁ = l₁ ∙ r₁} {t₂ = l₂ ∙ r₂} p sim@(sim-app simₗ simᵣ
 ... | refl | refl | refl with bisim p simₗ step
 ... | l₂′ ، step ، sim′ = l₂′ ∙ r₂ ، ξappl step ، sim-app sim′ simᵣ
  
+bisim p (sim-suc sim) (ξsucc step) 
+           with sit′ sim 
+... | refl with bisim p sim step
+... | t₂′ ، step′ ، sim′ = suc t₂′ ، ξsucc step′ ، sim-suc sim′
+
+
+-- Multi-step bisimulation
+bisim⋆ : ¬■ Γ
+       → Γ ⊢ t₁ ~ t₂ ∶ A 
+       → t₁ ↝⋆ t₁′ 
+       ------------------------------------------------------
+       → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝⋆ t₂′) ×′ (Γ ⊢ t₁′ ~ t₂′ ∶ A))
+bisim⋆ {t₂ = t₂} p sim ⋆refl = t₂ ، ⋆refl ، sim
+bisim⋆ p sim (⋆step step)       with bisim p sim step
+... | p′ ، sim′ ، step′    = p′ ، ⋆step sim′ ، step′
+bisim⋆ p sim (⋆trns steps step) with bisim⋆ p sim steps 
+... | t₂′ ، steps′ ، sim′        with bisim p sim′ step
+... | t₂′′ ، step′ ، sim′′ = t₂′′ ، ⋆trns steps′ step′ ، sim′′
+
+
+-- non-interference : (v : ∅       ⊢ Nat)
+--                  → (V : ∅ , M A ⊢ Nat) 
+--                  → (t : ∅       ⊢ M A)
+--                  → (u : ∅       ⊢ M A)
+--                  → V [ t ] ⇓ v
+--                  -------------
+--                  → V [ u ] ⇓ v
+-- non-interference v V t u V[t]-reduces = 
+--     let stepsₗ ، v-normal             = V[t]-reduces
+--         t~u                          = sim-mon t u
+--         V~V                          = sim-refl V
+--         V[t]~V[u]                    = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
+--         v-value                      = normal-value v v-normal
+--         V[u]′ ، stepsᵣ ، v~V[u]′      = bisim⋆ pℕ V[t]~V[u] stepsₗ
+--         V[u]′-value                  = sim-value v V[u]′ v~V[u]′ v-value
+--         v≡V[u]′                      = ind-eql v V[u]′ v-value V[u]′-value v~V[u]′
+        
+--         V[u]↝⋆v                     = subst (λ p → V [ u ] ↝⋆ p) (sym v≡V[u]′) stepsᵣ
+--     in V[u]↝⋆v ، proj₂ V[t]-reduces   
