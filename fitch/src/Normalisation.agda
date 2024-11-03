@@ -22,7 +22,6 @@ data Value : Γ ⊢ A → Set where
     Vs : Value t → Value (suc t)
     Vb : Value (box t)
 
-
 normal : {Γ : Context} → {A : Type} → (t : Γ ⊢ A) → Set
 normal {Γ} {A} t = {t′ : Γ ⊢ A} → ¬ (t ↝ t′)
 

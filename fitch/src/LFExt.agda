@@ -11,7 +11,7 @@ open import Data.Sum
 
 private variable
     A B : Type
-    Γ Δ Δ₁ Δ₂ Γ₁ Γ₂ Γ₃ : Context
+    Γ Γ′ Γ′′ Δ Δ₁ Δ₂ Γ₁ Γ₂ Γ₃ : Context
 
 infix 3 _is_∷_
 -- Lock free extension relation
@@ -19,6 +19,9 @@ infix 3 _is_∷_
 data _is_∷_ : Context → Context → Context → Set where
     is-nil : Γ is Γ  ∷ ∅
     is-ext : Γ is Γ₁ ∷ Γ₂ → Γ , A is Γ₁ ∷ Γ₂ , A 
+
+-- A barrage of syntactic lemmas relating to locks
+-- Not all of these are still used
 
 -- Lock free extensions are equivalences
 is∷-≡ : Γ is Γ₁ ∷ Γ₂ → Γ ≡ (Γ₁ ∷ Γ₂)
@@ -102,3 +105,8 @@ is∷-locked (is-ext ext) = ,-has-■ (is∷-locked ext)
 is∷-¬¬■ : Γ is Γ₁ ■ ∷ Γ₂ → ¬ ¬■ Γ
 is∷-¬¬■ is-nil       () 
 is∷-¬¬■ (is-ext ext) (¬■, p) = is∷-¬¬■ ext p
+
+is∷-≡■-is∷ : Γ is Γ₁ ■ ∷ Γ₂ → Γ is Γ₁ ■ ∷ Γ₃ → Γ₂ ≡ Γ₃
+is∷-≡■-is∷ is-nil       is-nil = refl 
+is∷-≡■-is∷ (is-ext exl) (is-ext exr) with is∷-≡■-is∷ exl exr
+... | refl = refl

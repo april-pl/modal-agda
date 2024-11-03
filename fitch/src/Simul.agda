@@ -24,12 +24,6 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
             --------------------------
             → Γ ⊢ suc t ~ suc t′ ∶ Nat
 
-    sim-lock : Γ is Γ₁ ■ ∷ Γ₂
-             → (t  : Γ ⊢ A) 
-             → (t′ : Γ ⊢ A)
-             ------------------
-             → Γ ⊢ t ~ t′ ∶ A
-
     sim-var : (x : A ∈ Γ)
             ---------------------------------
             → Γ ⊢ var x ~ var x ∶ A
@@ -43,35 +37,44 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
             ---------------------------------
             → Γ     ⊢ ƛ t ~ ƛ t′ ∶ A ⇒ B
 
-    sim-box : Γ ■ ⊢ t     ~ t′     ∶ A
-            ----------------------------
-            → Γ   ⊢ box t ~ box t′ ∶ □ A
+    sim-box : {t t′ : Γ ⊢ □ A}  
+            → Γ ⊢ t ~ t′ ∶ □ A
     
-    sim-unbox : {ext : Γ is Γ₁ ■ ∷ Γ₂} 
-              → Γ₁   ⊢ t                    ~ t′                    ∶ □ A
+    sim-unbox : {ext : Γ is Γ₁ ■ ∷ Γ₂}
+              → Γ₁   ⊢ t                    ~ t′               ∶ □ A
               ----------------------------------------------------------
               → Γ ⊢ unbox {ext = ext} t ~ unbox {ext = ext} t′ ∶ A
+
 
 sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
 sim-refl zer     = sim-zer
 sim-refl (suc n) = sim-suc (sim-refl n)
 sim-refl (var x) = sim-var x
 sim-refl (ƛ t)   = sim-lam (sim-refl t)
-sim-refl (box t) = sim-box (sim-refl t)
+sim-refl (box t) = sim-box
 sim-refl (l ∙ r) = sim-app (sim-refl l) (sim-refl r)
 sim-refl (unbox {ext = e} t) 
-    = sim-lock e (unbox t) (unbox t)
+    = sim-unbox (sim-refl t)
 
 -- Simulation implies typing, used to coax agda into unifying types of simulations.
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
-sit _          _          sim-zer                                   = refl
-sit _          _          (sim-suc n)                               = refl
-sit t₁         t₂         (sim-lock x _ _)                          = refl
-sit t₁         t₂         (sim-var x)                               = refl
-sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)       rewrite sit t₁ t₂ sim = refl
-sit (box t₁)   (box t₂)   (sim-box sim)       rewrite sit t₁ t₂ sim = refl
+-- sit _          _          sim-zer                                   = refl
+-- sit _          _          (sim-suc n)                               = refl
+-- sit t₁         t₂         (sim-var x)                               = refl
+-- sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)       rewrite sit t₁ t₂ sim = refl
+-- sit t₁   t₂        = {!   !}
+-- sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂ simₗ
+-- ... | refl = refl
+-- sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
+-- ... | refl = refl
+
+sit _          _          sim-zer     = refl
+sit _          _          (sim-suc n) = refl
+sit _          _          (sim-var x) = refl
+sit _          _          sim-box     = refl
 sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂ simₗ
 ... | refl = refl
+sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)       rewrite sit t₁ t₂ sim = refl
 sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
 ... | refl = refl
 
@@ -105,6 +108,8 @@ module Lemmas where
              → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
     sim-weak _       _       wk sim-zer           = sim-zer
     sim-weak (suc n) (suc m) wk (sim-suc sim)     = sim-suc (sim-weak n m wk sim)
+    sim-weak t₁      t₂      wk sim-box           = sim-box 
+    
     sim-weak _ _ wk (sim-var x) = sim-var (Γ-weak wk x)
 
     sim-weak (ƛ t₁) (ƛ t₂) wk (sim-lam sim) = sim-lam (sim-weak t₁ t₂ (⊆-keep wk) sim)
@@ -112,11 +117,7 @@ module Lemmas where
     sim-weak (l₁ ∙ r₁)  (l₂ ∙ r₂) wk (sim-app simₗ simᵣ) with sit′ simₗ | sit′ simᵣ
     ... | refl | refl = sim-app (sim-weak l₁ l₂ wk simₗ) 
                                 (sim-weak r₁ r₂ wk simᵣ)
-                                
-    sim-weak t₁ t₂ wk (sim-lock p _ _) with is∷-Δweak p wk 
-    ... | p′ = sim-lock p′ (weakening wk t₁) (weakening wk t₂)
     
-    sim-weak (box t₁)   (box t₂)   wk (sim-box sim)   = sim-box (sim-weak t₁ t₂ (⊆-lock wk) sim)
     sim-weak (unbox {ext} t₁) (unbox t₂) wk (sim-unbox sim) with is∷-Δweak ext wk
     ... | ext′ = sim-unbox {ext = ext′} (sim-weak t₁ t₂ (is∷-←■weak ext wk) sim)
 
@@ -131,10 +132,17 @@ module Lemmas where
     simσ-weak simσ-ε          = simσ-ε
     simσ-weak (simσ-• simσ x) = simσ-• (simσ-weak simσ) (sim-weak′ x) 
     simσ-weak (simσ-■ simσ w) = simσ-■ simσ (is-ext w)
- 
+  
     lemma-σ+ : Γ       , Δ       ⊢ σ            ~ τ
-         → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
+             → (Γ , A) , (Δ , A) ⊢ σ+ {A = A} σ ~ σ+ {A = A} τ
     lemma-σ+ simσ-ε = simσ-• simσ-ε (sim-var Z) 
     lemma-σ+ (simσ-• sim x) = 
-        simσ-• (simσ-• (simσ-weak sim) (sim-weak′ x)) (sim-var Z)
-    lemma-σ+ (simσ-■ simσ w) = simσ-• (simσ-■ simσ (is-ext w)) (sim-var Z)
+        simσ-• (simσ-• (simσ-weak sim) (sim-weak′ x)) (sim-var Z)   
+    lemma-σ+ (simσ-■ simσ w) = simσ-• (simσ-■ simσ (is-ext w)) (sim-var Z)   
+
+    simσ-←■ : Γ    , Δ    ⊢ σ        ~ τ
+            → ←■ Γ , ←■ Δ ⊢ sub-←■ σ ~ sub-←■ τ
+    simσ-←■ simσ-ε          = simσ-ε 
+    simσ-←■ (simσ-• simσ t) = simσ-←■ simσ
+    simσ-←■ (simσ-■ simσ w ) with is∷-←■ w 
+    ... | refl = simσ

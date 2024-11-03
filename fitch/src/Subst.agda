@@ -59,6 +59,26 @@ sub-←■ ε                            = ε
 sub-←■ (σ • t)                      = sub-←■ σ
 sub-←■ (σ •[ w ]■) rewrite is∷-←■ w = σ
 
+-- thanks to https://github.com/nachivpn/k/src/IK/Term/Base.agda
+
+-- ←■ that computes with substitutions
+leftContext : Γ is Γ₁ ■ ∷ Γ₂ → Δ ⇉ Γ → Context
+leftContext is-nil       (_•[_]■ {Δ₁ = Δ₁} σ w) = Δ₁
+leftContext (is-ext ext) (σ • t)                = leftContext ext σ
+
+rightContext : Γ is Γ₁ ■ ∷ Γ₂ → Δ ⇉ Γ → Context
+rightContext is-nil       (_•[_]■ {Δ₂ = Δ₂} σ w) = Δ₂
+rightContext (is-ext ext) (σ • t)                = rightContext ext σ
+
+-- Properly push a substitution under a context in a way that computes
+factor : (ext : Γ is Γ₁ ■ ∷ Γ₂) → (σ : Δ ⇉ Γ) → (leftContext ext σ) ⇉ Γ₁
+factor is-nil       (σ •[ w ]■) = σ
+factor (is-ext ext) (σ • t)     = factor ext σ
+
+factor′ : (ext : Γ is Γ₁ ■ ∷ Γ₂) → (σ : Δ ⇉ Γ) → Δ is (leftContext ext σ) ■ ∷ (rightContext ext σ)
+factor′ is-nil       (σ •[ w ]■) = w
+factor′ (is-ext ext) (σ • t)     = factor′ ext σ
+
 -- Parallel substitution
 sub : Γ ⇉ Δ → Δ ⊢ A → Γ ⊢ A
 sub σ zer     = zer
@@ -71,14 +91,19 @@ sub σ (ƛ t)   = ƛ sub (σ+ σ) t
 sub σ (box t) = box (sub (σ •■) t)
 sub σ (l ∙ r) = sub σ l ∙ sub σ r
 ---------------------------------
-sub (σ •[ w ]■) (unbox {ext = e} t) with is∷-unpeelₗ e 
-... | refl = unbox {ext = w} (sub σ t) 
-sub (_•_ {Δ = Δ} {A = B} σ u) (unbox {ext = is-ext e} t) with is∷-←■ e
-... | refl = 
-        let Γ-locked = is∷-locked e
-            Δ-locked = ⇉-has-■-l σ Γ-locked
-            Δ-parted = partition-locked Δ-locked
-        in unbox {ext = Δ-parted} (sub (sub-←■ σ) t)
+sub σ (unbox {ext = ext} t) = 
+    unbox {ext = factor′ ext σ} (sub (factor ext σ) t)
+
+-- -- sub (σ •[ w ]■) (unbox {ext = e} t) with is∷-unpeelₗ e 
+-- -- ... | refl = unbox {ext = w} (sub σ t) 
+-- sub (σ •[ w ]■) (unbox {ext = is-nil} t) = unbox {ext = w} (sub σ t)
+-- -- sub (_•_ {Δ = Δ} {A = B} σ u) (unbox {ext = is-ext e} t) with is∷-←■ e
+-- -- ... | refl = 
+-- --         let Γ-locked = is∷-locked e
+-- --             Δ-locked = ⇉-has-■-l σ Γ-locked
+-- --             Δ-parted = partition-locked Δ-locked
+-- --         in unbox {ext = Δ-parted} (sub (sub-←■ σ) t)
+-- sub (_•_ {Δ = Δ} {A = B} σ u) (unbox {ext = is-ext e} t) = unbox {ext = {!   !}} (sub (sub-←■ σ) {! e  !})
     
     -- ε       ◦ τ = ε
     -- wk w    ◦ τ = ⇉-st τ w
@@ -102,5 +127,5 @@ _◦_ : Δ ⇉ Γ → θ ⇉ Δ → θ ⇉ Γ
 
 infix 5 _[_]
 -- Single variable substitution on the first free variable. Used in β.
-_[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
-t₁ [ t₂ ] = sub (id • t₂) t₁    
+_[_] : Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A 
+t₁ [ t₂ ] = sub (id • t₂) t₁     

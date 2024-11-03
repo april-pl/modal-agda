@@ -106,3 +106,14 @@ data _⊆_ : Context → Context → Set where
 Γ-weak (⊆-drop rest) x     = S (Γ-weak rest x)
 Γ-weak (⊆-keep rest) (S x) = S (Γ-weak rest x)
 Γ-weak (⊆-keep rest) Z     = Z  
+
+-- Evidence that a type is pure (non-modal)
+data pure : Type → Set where
+    pℕ  : pure Nat
+    p⇒ : pure B → pure (A ⇒ B)
+
+¬M-pure : ¬ pure (□ A)
+¬M-pure () 
+
+impure : {P : Set} → pure (□ A) → P
+impure ()  

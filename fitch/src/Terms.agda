@@ -5,6 +5,7 @@ open import Data.Nat
 open import Data.Unit
 open import Data.Empty
 open import Function.Base
+open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 

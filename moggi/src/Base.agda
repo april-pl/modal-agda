@@ -25,10 +25,6 @@ data Context : Set where
     ∅   : Context
     _,_ : Context → Type → Context
 
--- Syntactic sugar for one value contexts
-! : Type → Context
-! A = ∅ , A
-
 private variable
     A B : Type
     Γ Γ′ Δ Δ′ Γ₁ Γ₂ Γ₃ : Context
