@@ -6,7 +6,7 @@ open import Relation.Binary.PropositionalEquality
 open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 
 private variable
-    A B C T U : Type
+    A B C U : Type
     Γ Δ Γ₁ Γ₂ : Context
 
 infixl 6 _∙_
@@ -21,12 +21,12 @@ data _⊢_ : Context → Type → Set where
     
     var   : A ∈ Γ → Γ ⊢ A
 
-    η_    : Γ ⊢ A     → Γ ⊢ M A 
+    η_    : Γ ⊢ A     → Γ ⊢ T A 
     ƛ_    : Γ , A ⊢ B → Γ ⊢ A ⇒ B
 
     _∙_   : Γ ⊢ A ⇒ B → Γ ⊢ A → Γ ⊢ B
 
-    bind_of_ : Γ ⊢ M A → Γ , A ⊢ M B → Γ ⊢ M B
+    bind_of_ : Γ ⊢ T A → Γ , A ⊢ T B → Γ ⊢ T B
 
     case_of_,_ : Γ ⊢ A + B → Γ , A ⊢ C → Γ , B ⊢ C → Γ ⊢ C
     inl : Γ ⊢ A → Γ ⊢ A + B

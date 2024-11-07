@@ -1,7 +1,6 @@
 module Base where
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
-open import Data.Bool 
 open import Data.Empty
 open import Data.Unit
 open import Relation.Binary.PropositionalEquality
@@ -15,7 +14,7 @@ infixr 7 _+_
 -- Modal type constructors.
 data Type : Set where 
     Nat  : Type
-    M    : Type → Type
+    T    : Type → Type
     _⇒_ : Type → Type → Type
     _×_  : Type → Type → Type
     _+_  : Type → Type → Type  
@@ -83,8 +82,8 @@ data pure : Type → Set where
     p× : pure (A × B)
     p+ : pure (A + B)
 
-¬M-pure : ¬ pure (M A)
+¬M-pure : ¬ pure (T A)
 ¬M-pure () 
 
-impure : {P : Set} → pure (M A) → P
+impure : {P : Set} → pure (T A) → P
 impure ()  

@@ -3,7 +3,6 @@ open import Base
 open import Terms
 open import Trans
 open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Data.Bool 
 open import Data.Product renaming (_,_ to _⸲_)
 open import Subst
 
@@ -21,10 +20,10 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
             --------------------------
             → Γ ⊢ suc t ~ suc t′ ∶ Nat
 
-    sim-mon : (t  : Γ ⊢ M A) 
-            → (t′ : Γ ⊢ M A)
+    sim-mon : (t  : Γ ⊢ T A) 
+            → (t′ : Γ ⊢ T A)
             ----------------
-            → Γ ⊢ t ~ t′ ∶ M A
+            → Γ ⊢ t ~ t′ ∶ T A
 
     sim-var : (x : A ∈ Γ)
             ---------------------------------

@@ -4,7 +4,6 @@ open import Terms
 open import Trans
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
-open import Data.Bool 
 open import Data.Empty
 open import Data.Nat
 open import Data.Product renaming (_,_ to _،_; _×_ to _×′_)
@@ -127,9 +126,9 @@ bisim⋆ p sim (⋆trns steps step) with bisim⋆ p sim steps
 
 
 non-interference : (v : ∅       ⊢ Nat)
-                 → (V : ∅ , M A ⊢ Nat) 
-                 → (t : ∅       ⊢ M A)
-                 → (u : ∅       ⊢ M A)
+                 → (V : ∅ , T A ⊢ Nat) 
+                 → (t : ∅       ⊢ T A)
+                 → (u : ∅       ⊢ T A)
                  → V [ t ] ⇓ v
                  -------------
                  → V [ u ] ⇓ v
