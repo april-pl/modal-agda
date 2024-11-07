@@ -40,11 +40,12 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
     sim-box : {t t′ : Γ ⊢ □ A}  
             → Γ ⊢ t ~ t′ ∶ □ A
     
-    sim-unbox : {ext : Γ is Γ₁ ■ ∷ Γ₂}
-              → Γ₁   ⊢ t                    ~ t′               ∶ □ A
+    -- Morally this should take an argument of type Γ₁ ⊢ t ~ t′ ∶ □ A
+    -- But this is trivial by sim-box and it makes some things easier to omit it
+    sim-unbox : {t t′ : Γ₁ ⊢ □ A}  
+              → {ext : Γ is Γ₁ ■ ∷ Γ₂}
               ----------------------------------------------------------
               → Γ ⊢ unbox {ext = ext} t ~ unbox {ext = ext} t′ ∶ A
-
 
 sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
 sim-refl zer     = sim-zer
@@ -54,20 +55,10 @@ sim-refl (ƛ t)   = sim-lam (sim-refl t)
 sim-refl (box t) = sim-box
 sim-refl (l ∙ r) = sim-app (sim-refl l) (sim-refl r)
 sim-refl (unbox {ext = e} t) 
-    = sim-unbox (sim-refl t)
+    = sim-unbox 
 
 -- Simulation implies typing, used to coax agda into unifying types of simulations.
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
--- sit _          _          sim-zer                                   = refl
--- sit _          _          (sim-suc n)                               = refl
--- sit t₁         t₂         (sim-var x)                               = refl
--- sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)       rewrite sit t₁ t₂ sim = refl
--- sit t₁   t₂        = {!   !}
--- sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂ simₗ
--- ... | refl = refl
--- sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
--- ... | refl = refl
-
 sit _          _          sim-zer     = refl
 sit _          _          (sim-suc n) = refl
 sit _          _          (sim-var x) = refl
@@ -75,8 +66,7 @@ sit _          _          sim-box     = refl
 sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂ simₗ
 ... | refl = refl
 sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)       rewrite sit t₁ t₂ sim = refl
-sit (unbox t₁) (unbox t₂) (sim-unbox sim)     with sit t₁ t₂ sim 
-... | refl = refl
+sit (unbox t₁) (unbox t₂) sim-unbox = refl
 
 sit′ : {t₁ t₂ : Γ ⊢ B} → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
 sit′ {t₁ = t₁} {t₂ = t₂} = sit t₁ t₂ 
@@ -86,12 +76,14 @@ infix 2 _,_⊢_~_
 data _,_⊢_~_ : (Δ Γ : Context) → Δ ⇉ Γ → Δ ⇉ Γ → Set where
     simσ-ε : Δ , ∅ ⊢ ε ~ ε
 
-    simσ-• : Δ , Γ ⊢ σ  ~ τ
+    simσ-• : {σ τ : Δ ⇉ Γ}
+           → Δ , Γ ⊢ σ  ~ τ
            → Δ     ⊢ t₁ ~ t₂ ∶ A
            -----------------------------------
            → Δ , (Γ , A) ⊢ (σ • t₁) ~ (τ • t₂)
 
-    simσ-■ : Δ₁ , Γ  ⊢ σ         ~ τ
+    simσ-■ : {σ τ : Δ₁ ⇉ Γ} 
+           → Δ₁ , Γ  ⊢ σ         ~ τ
            → (w : Δ is Δ₁ ■ ∷ Δ₂)
            ---------------------------------
            → Δ , Γ ■ ⊢ σ •[ w ]■ ~ τ •[ w ]■
@@ -118,8 +110,7 @@ module Lemmas where
     ... | refl | refl = sim-app (sim-weak l₁ l₂ wk simₗ) 
                                 (sim-weak r₁ r₂ wk simᵣ)
     
-    sim-weak (unbox {ext} t₁) (unbox t₂) wk (sim-unbox sim) with is∷-Δweak ext wk
-    ... | ext′ = sim-unbox {ext = ext′} (sim-weak t₁ t₂ (is∷-←■weak ext wk) sim)
+    sim-weak (unbox {ext} t₁) (unbox t₂) wk sim-unbox = sim-unbox
 
     sim-weak′ : {t₁ t₂ : Γ ⊢ A} 
               → {wk : Γ ⊆ Δ}

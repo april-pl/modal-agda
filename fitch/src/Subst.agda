@@ -79,6 +79,7 @@ factor′ : (ext : Γ is Γ₁ ■ ∷ Γ₂) → (σ : Δ ⇉ Γ) → Δ is (le
 factor′ is-nil       (σ •[ w ]■) = w
 factor′ (is-ext ext) (σ • t)     = factor′ ext σ
 
+
 -- Parallel substitution
 sub : Γ ⇉ Δ → Δ ⊢ A → Γ ⊢ A
 sub σ zer     = zer
