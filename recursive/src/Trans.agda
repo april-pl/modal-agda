@@ -37,6 +37,11 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
     ξπ₁ : t ↝ t′ → π₁ t ↝ π₁ t′
     ξπ₂ : t ↝ t′ → π₂ t ↝ π₂ t′
 
+    ξunfold : { B : TypeIn (new none)}
+            → { t t′ : Γ ⊢ Rec B }
+            → t ↝ t′
+            → _↝_  { A = B ⁅ Rec B ⁆ } (unfold B t) (unfold B t′)
+
 -- RTC
 infix 4 _↝⋆_
 data _↝⋆_ : Γ ⊢ A → Γ ⊢ A → Set where

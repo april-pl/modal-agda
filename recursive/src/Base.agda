@@ -132,11 +132,13 @@ data _⊆_ : Context → Context → Set where
 Γ-weak (⊆-keep rest) Z     = Z  
 
 -- Evidence that a type is pure (non-modal)
-data pure : Type → Set where
-    pℕ  : pure Nat
+data pure : TypeIn θ → Set where
+    pℕ  : pure {θ = θ} Nat
     p⇒ : pure B → pure (A ⇒ B)
+    pV : ∀ { x } → pure {θ = θ} (TyVar x)
     p× : pure (A × B)
     p+ : pure (A + B)
+    -- pμ : ∀ { B } → pure {θ = θ} (Rec B)
  
 ¬M-pure : ¬ pure (T A)
 ¬M-pure () 
