@@ -47,9 +47,11 @@ ius (l₁ ∙ r₁) (l₂ ∙ r₂) σ₁ σ₂ (sim-app simₗ simᵣ) simσ wi
 ius (ƛ t₁) (ƛ t₂) σ₁ σ₂ (sim-lam sim) simσ with sit′ sim
 ... | refl = sim-lam (ius t₁ t₂ (σ+ σ₁) (σ+ σ₂) sim (lemma-σ+ simσ))
 
--- ius (unbox t₁) (unbox t₂) σ₁ σ₂ (sim-unbox {ext = ext}) simσ with unbox-lemma σ₁ ext t₁ | unbox-lemma σ₂ ext t₂
--- ... | u₁ ، p | u₂ ، q = ?
-ius (unbox t₁) (unbox t₂) σ₁ σ₂ (sim-unbox {ext = ext}) simσ = {!   !}
+-- (unbox {ext = ext} t₁) (unbox {ext = ext′} t₂) σ₁ σ₂ (sim-unbox {ext = ext} {ext′ = ext′}) simσ with unbox-lemma σ₁ ext t₁ | unbox-lemma σ₂ ext t₂
+-- ... | u₁ ، p | u₂ ، q = {! sim-unbox {t = sub (factor ext σ₁) t₁} {t′ = sub (factor ext σ₂) t₂}  !}
+-- ius (unbox {ext = ext} t₁) (unbox {ext = ext′} t₂) σ₁ σ₂ (sim-unbox {ext = ext} {ext′ = ext′}) simσ = {! sim-unbox {t = sub (factor ext σ₁) t₁} {t′ = sub (factor ext′ σ₂) t₂} !}
+
+ius (unbox {ext = ext} t₁) (unbox {ext = ext′} t₂) σ₁ σ₂ (sim-unbox) simσ = {! sim-unbox !}
 
 ius t₁ t₂ σ₁ σ₂ sim-box _ = sim-box
 
@@ -121,4 +123,4 @@ ius t₁ t₂ σ₁ σ₂ sim-box _ = sim-box
 --     in V[u]↝⋆v ، proj₂ V[t]-reduces    
 --     -- in {!   !} 
     
--- -- -- -- ∅ ⊢ M :   
+-- -- -- -- ∅ ⊢ M :     

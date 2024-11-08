@@ -43,9 +43,9 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
     -- Morally this should take an argument of type Γ₁ ⊢ t ~ t′ ∶ □ A
     -- But this is trivial by sim-box and it makes some things easier to omit it
     sim-unbox : {t t′ : Γ₁ ⊢ □ A}  
-              → {ext : Γ is Γ₁ ■ ∷ Γ₂}
+              → {ext ext′ : Γ is Γ₁ ■ ∷ Γ₂}
               ----------------------------------------------------------
-              → Γ ⊢ unbox {ext = ext} t ~ unbox {ext = ext} t′ ∶ A
+              → Γ ⊢ unbox {ext = ext} t ~ unbox {ext = ext′} t′ ∶ A
 
 sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
 sim-refl zer     = sim-zer
