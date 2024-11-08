@@ -1,0 +1,4 @@
+name: src
+depend: standard-library
+include: src
+flags: --hidden-argument-puns
