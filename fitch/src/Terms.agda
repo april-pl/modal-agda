@@ -37,6 +37,9 @@ data _⊢_ : Context → Type → Set where
     π₁ : Γ ⊢ A × B → Γ ⊢ A
     π₂ : Γ ⊢ A × B → Γ ⊢ B
 
+    fold   : (A : TypeIn (new none)) → Γ ⊢ (A ⁅ Rec A ⁆) → Γ ⊢ Rec A
+    unfold : (A : TypeIn (new none)) → (B ≡ A ⁅ Rec A ⁆) → Γ ⊢ Rec A → Γ ⊢ B
+
 
 weakening : Γ ⊆ Δ → Γ ⊢ A → Δ ⊢ A
 weakening wk zer     = zer
@@ -54,3 +57,5 @@ weakening wk (case t of l , r)
 weakening wk ⟨ t , t₁ ⟩ = ⟨ weakening wk t , weakening wk t₁ ⟩
 weakening wk (π₁ t)     = π₁ (weakening wk t)
 weakening wk (π₂ t)     = π₂ (weakening wk t) 
+weakening wk (fold A t)   = fold A (weakening wk t)
+weakening wk (unfold A p t) = unfold A p (weakening wk t)

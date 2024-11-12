@@ -62,6 +62,9 @@ ius prf (case t₁ of l₁ , r₁) (case t₂ of l₂ , r₂) σ₁ σ₂ (sim-c
               (ius (¬■, prf) l₁ l₂ (σ+ σ₁) (σ+ σ₂) simₗ (lemma-σ+ simσ))
               (ius (¬■, prf) r₁ r₂ (σ+ σ₁) (σ+ σ₂) simᵣ (lemma-σ+ simσ))
 
+ius prf (fold B t₁)   (fold B t₂)   σ₁ σ₂ (sim-fold sim) simσ   = sim-fold (ius prf t₁ t₂ σ₁ σ₂ sim simσ) 
+ius prf (unfold _ refl t₁) (unfold _ refl t₂) σ₁ σ₂ (sim-unfold _ refl sim) simσ = sim-unfold _ refl (ius prf _ _ σ₁ σ₂ sim simσ) 
+
 -- Non-interference for the Fitch calculus
 bisim : (t₁ t₂ : Γ ⊢ A)
    → ¬■ Γ → pure A
@@ -116,6 +119,12 @@ bisim (π₂ t₁) (π₂ t₂) prf p (sim-pi2 sim) (ξπ₂ step)
 ... | refl with bisim t₁ t₂ prf p× sim step 
 ... | t₂′ ، step′ ، sim′ = π₂ t₂′ ، ξπ₂ step′ ، sim-pi2 sim′
 
+bisim (unfold B .refl (fold B t₁)) (unfold B .refl (fold B t₂)) prf p (sim-unfold B .refl (sim-fold sim)) βunfold 
+    = t₂ ، βunfold ، sim
+
+bisim (unfold B q₁ t₁) (unfold B q₂ t₂) prf p (sim-unfold B q₃ sim) (ξunfold step q₄) with bisim t₁ t₂ prf pμ sim step 
+... | t₂′ ، step′ ، sim′ = unfold B q₁ t₂′ ، ξunfold step′ q₁ ، sim-unfold _ q₁ sim′
+
 -- Multi-step bisimulation
 bisim⋆ : ¬■ Γ → pure A
        → Γ ⊢ t₁ ~ t₂ ∶ A 
@@ -147,4 +156,4 @@ non-interference v V t u V[t]-reduces =
         v≡V[u]′                      = ind-eql v V[u]′ v-value V[u]′-value v~V[u]′
          
         V[u]↝⋆v                     = subst (λ p → V [ u ] ↝⋆ p) (sym v≡V[u]′) stepsᵣ
-    in V[u]↝⋆v ، proj₂ V[t]-reduces    
+    in V[u]↝⋆v ، proj₂ V[t]-reduces     

@@ -99,8 +99,12 @@ sub σ (inr t) = inr (sub σ t)
 sub σ (π₁ t)  = π₁ (sub σ t)
 sub σ (π₂ t)  = π₂ (sub σ t)
 ----------------------------
+sub σ (fold A t)   = fold A (sub σ t)
+sub σ (unfold A p t) = unfold A p (sub σ t)
+----------------------------
 sub σ (unbox {ext = ext} t) = 
     unbox {ext = factor′ ext σ} (sub (factor ext σ) t)
+
 
 _◦_ : Δ ⇉ Γ → θ ⇉ Δ → θ ⇉ Γ
 ε           ◦ τ = ε

@@ -25,6 +25,7 @@ data Value : Γ ⊢ A → Set where
     V× : Value ⟨ t , u ⟩
     Vl : {B : Type} → Value (inl {B = B} t)
     Vr : {A : Type} → Value (inr {A = A} t)
+    Vf : {B : TypeIn (new none)} → {t : Γ ⊢ B ⁅ Rec B ⁆} → Value (fold B t)
 
 infix 1 _⇓_
 _⇓_ : Γ ⊢ A → Γ ⊢ A → Set
