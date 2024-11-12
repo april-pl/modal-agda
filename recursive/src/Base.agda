@@ -138,7 +138,7 @@ data pure : TypeIn θ → Set where
     pV : ∀ { x } → pure {θ = θ} (TyVar x)
     p× : pure (A × B)
     p+ : pure (A + B)
-    -- pμ : ∀ { B } → pure {θ = θ} (Rec B)
+    pμ : ∀ { B } → pure {θ = θ} (Rec B)
  
 ¬M-pure : ¬ pure (T A)
 ¬M-pure () 

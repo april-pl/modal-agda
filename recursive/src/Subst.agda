@@ -73,7 +73,7 @@ sub σ (π₁ t)  = π₁ (sub σ t)
 sub σ (π₂ t)  = π₂ (sub σ t)
 ----------------------------
 sub σ (fold A t)   = fold A (sub σ t)
-sub σ (unfold A t) = unfold A (sub σ t)
+sub σ (unfold A p t) = unfold A p (sub σ t)
 
 -- Composition of substitutions
 _◦_ : Δ ⇉ Γ → θ ⇉ Δ → θ ⇉ Γ

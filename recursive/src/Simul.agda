@@ -20,7 +20,7 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
             --------------------------
             → Γ ⊢ suc t ~ suc t′ ∶ Nat
 
-    sim-mon : (t  : Γ ⊢ T A) 
+    sim-mon : (t  : Γ ⊢ T A)  
             → (t′ : Γ ⊢ T A)
             ----------------
             → Γ ⊢ t ~ t′ ∶ T A
@@ -71,11 +71,12 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
              --------------------------
              → Γ ⊢ fold B t ~ fold B t′ ∶ Rec B
 
-    sim-unfold : {B : TypeIn (new none)}
+    sim-unfold : (B : TypeIn (new none))
                → {t t′ : Γ ⊢ Rec B}
+               → (p : C ≡ B ⁅ Rec B ⁆)
                → Γ ⊢ t ~ t′ ∶ Rec B
                --------------------
-               → Γ ⊢ unfold B t ~ unfold B t′ ∶ B ⁅ Rec B ⁆
+               → Γ ⊢ unfold B p t ~ unfold B p t′ ∶ C
 
 sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
 sim-refl zer           = sim-zer
@@ -92,7 +93,7 @@ sim-refl (π₁ t)        = sim-pi1 (sim-refl t)
 sim-refl (π₂ t)        = sim-pi2 (sim-refl t)
 sim-refl ⟨ l , r ⟩     = sim-mul (sim-refl l) (sim-refl r)
 sim-refl (fold A t)    = sim-fold (sim-refl t)
-sim-refl (unfold A t)  = sim-unfold (sim-refl t)
+sim-refl (unfold A p t)  = sim-unfold _ p (sim-refl t)
 
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
 sit _ _ sim-zer          = refl
@@ -100,7 +101,7 @@ sit _ _ (sim-suc n)      = refl
 sit _ _ (sim-mon _ _)    = refl
 sit _ _ (sim-var x)      = refl
 sit _ _ (sim-fold sim)   = refl
-sit _ _ (sim-unfold sim) = refl
+sit _ _ (sim-unfold _ _ sim) = refl
 sit _ _ (sim-lam sim)           with sit _ _ sim 
 ... | refl = refl
 sit _ _ (sim-app simₗ simᵣ)     with sit _ _ simₗ
@@ -169,7 +170,7 @@ module Lemmas where
     sim-weak (inr t₁) (inr t₂) wk (sim-inr sim) = sim-inr (sim-weak t₁ t₂ wk sim)
 
     sim-weak (fold _ t₁)   (fold _ t₂)   wk (sim-fold sim)   = sim-fold (sim-weak t₁ t₂ wk sim)
-    sim-weak (unfold _ t₁) (unfold _ t₂) wk (sim-unfold sim) = sim-unfold (sim-weak t₁ t₂ wk sim)          
+    sim-weak (unfold _ _ t₁) (unfold _ _ t₂) wk (sim-unfold _ _ sim) = sim-unfold _ _ (sim-weak t₁ t₂ wk sim)          
 
     -- w/ implicit arguments
     sim-weak′ : {t₁ t₂ : Γ ⊢ A} 

@@ -3,10 +3,12 @@ open import Base
 open import Terms
 open import Subst
 
+open import Relation.Binary.PropositionalEquality hiding ([_])
+
 private variable
     t  u  l  r  t₁  t₂  v : _ ⊢ _
     t′ u′ l′ r′ t₁′ t₂′ : _ ⊢ _
-    A B : Type
+    A B C : Type
     Γ Γ₁ Γ₂ : Context
     θ : TyContext
 
@@ -24,7 +26,7 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
 
     βunfold : { B : TypeIn (new none)}
             → { t : Γ ⊢ B ⁅ Rec B ⁆ } 
-            → _↝_ { A = B ⁅ Rec B ⁆ } (unfold B (fold B t)) t
+            → _↝_ { A = B ⁅ Rec B ⁆ } (unfold B refl (fold B t)) t
 
     ξsucc : t ↝ t′ → suc t       ↝ suc t′
     ξbind : t ↝ t′ → bind t of u ↝ bind t′ of u 
@@ -40,7 +42,8 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
     ξunfold : { B : TypeIn (new none)}
             → { t t′ : Γ ⊢ Rec B }
             → t ↝ t′
-            → _↝_  { A = B ⁅ Rec B ⁆ } (unfold B t) (unfold B t′)
+            → (p : C ≡ B ⁅ Rec B ⁆)
+            → _↝_  { A = C } (unfold B p t) (unfold B p t′)
 
 -- RTC
 infix 4 _↝⋆_
