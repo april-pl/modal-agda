@@ -79,7 +79,6 @@ factor′ : (ext : Γ is Γ₁ ■ ∷ Γ₂) → (σ : Δ ⇉ Γ) → Δ is (le
 factor′ is-nil       (σ •[ w ]■) = w
 factor′ (is-ext ext) (σ • t)     = factor′ ext σ
 
-
 -- Parallel substitution
 sub : Γ ⇉ Δ → Δ ⊢ A → Γ ⊢ A
 sub σ zer     = zer
@@ -92,27 +91,16 @@ sub σ (ƛ t)   = ƛ sub (σ+ σ) t
 sub σ (box t) = box (sub (σ •■) t)
 sub σ (l ∙ r) = sub σ l ∙ sub σ r
 ---------------------------------
+sub σ (case t of l , r) = case sub σ t of sub (σ+ σ) l , sub (σ+ σ) r
+sub σ ⟨ l , r ⟩         = ⟨ sub σ l , sub σ r ⟩
+-----------------------------------------------
+sub σ (inl t) = inl (sub σ t)
+sub σ (inr t) = inr (sub σ t)
+sub σ (π₁ t)  = π₁ (sub σ t)
+sub σ (π₂ t)  = π₂ (sub σ t)
+----------------------------
 sub σ (unbox {ext = ext} t) = 
     unbox {ext = factor′ ext σ} (sub (factor ext σ) t)
-
--- -- sub (σ •[ w ]■) (unbox {ext = e} t) with is∷-unpeelₗ e 
--- -- ... | refl = unbox {ext = w} (sub σ t) 
--- sub (σ •[ w ]■) (unbox {ext = is-nil} t) = unbox {ext = w} (sub σ t)
--- -- sub (_•_ {Δ = Δ} {A = B} σ u) (unbox {ext = is-ext e} t) with is∷-←■ e
--- -- ... | refl = 
--- --         let Γ-locked = is∷-locked e
--- --             Δ-locked = ⇉-has-■-l σ Γ-locked
--- --             Δ-parted = partition-locked Δ-locked
--- --         in unbox {ext = Δ-parted} (sub (sub-←■ σ) t)
--- sub (_•_ {Δ = Δ} {A = B} σ u) (unbox {ext = is-ext e} t) = unbox {ext = {!   !}} (sub (sub-←■ σ) {! e  !})
-    
-    -- ε       ◦ τ = ε
-    -- wk w    ◦ τ = ⇉-st τ w
-    -- (σ • t) ◦ τ         = (σ ◦ τ) • sub τ t
-    -- (σ •■)  ◦ wk w with ■⊆′ w | w
-    -- ... | Γ₁  ، ∅ ، is-nil     | ⊆-lock w = (σ ◦ wk w) •■
-    -- ... | _   ، _ ، is-ext ext | w        = (σ •■) ◦ wk w
-    -- (σ •■) ◦ (τ •■) = (σ ◦ τ) •■
 
 _◦_ : Δ ⇉ Γ → θ ⇉ Δ → θ ⇉ Γ
 ε           ◦ τ = ε

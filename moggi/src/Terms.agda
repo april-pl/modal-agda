@@ -2,12 +2,13 @@ module Terms where
 open import Base
 open import Data.Unit
 open import Data.Empty
-open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 
 private variable
     A B C U : Type
     Γ Δ Γ₁ Γ₂ : Context
+    θ : TyContext
 
 infixl 6 _∙_
 infix  5 ƛ_
@@ -16,8 +17,8 @@ infix  5 case_of_,_
 infix  3 _⊢_
 -- The type of well-typed and scoped terms.
 data _⊢_ : Context → Type → Set where
-    zer   : Γ ⊢ Nat
-    suc   : Γ ⊢ Nat → Γ ⊢ Nat
+    zer   : _⊢_ Γ Nat
+    suc   : _⊢_ Γ Nat → _⊢_ Γ Nat
     
     var   : A ∈ Γ → Γ ⊢ A
 
@@ -36,6 +37,10 @@ data _⊢_ : Context → Type → Set where
     π₁ : Γ ⊢ A × B → Γ ⊢ A
     π₂ : Γ ⊢ A × B → Γ ⊢ B
 
+    fold   : (A : TypeIn (new none)) → Γ ⊢ (A ⁅ Rec A ⁆) → Γ ⊢ Rec A
+    unfold : (A : TypeIn (new none)) → (B ≡ A ⁅ Rec A ⁆) → Γ ⊢ Rec A → Γ ⊢ B
+    
+
 weakening : Γ ⊆ Δ → Γ ⊢ A → Δ ⊢ A
 weakening wk zer     = zer
 weakening wk (suc n) = suc (weakening wk n)
@@ -52,3 +57,5 @@ weakening wk (case t of l , r)
 weakening wk ⟨ t , t₁ ⟩ = ⟨ weakening wk t , weakening wk t₁ ⟩
 weakening wk (π₁ t)     = π₁ (weakening wk t)
 weakening wk (π₂ t)     = π₂ (weakening wk t) 
+weakening wk (fold A t)   = fold A (weakening wk t)
+weakening wk (unfold A p t) = unfold A p (weakening wk t)

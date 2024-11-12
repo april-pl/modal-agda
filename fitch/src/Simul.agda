@@ -4,15 +4,13 @@ open import LFExt
 open import Terms
 open import Trans
 open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Function
 open import Data.Bool 
-open import Data.Nat
 open import Data.Product renaming (_,_ to _⸲_)
 open import Subst
 
 private variable
-    t t′ t₁ t₂ t₁′ t₂′ a a₁ a₂ a′ b b₁ b₂ b′ : _ ⊢ _
-    A B : Type
+    t t′ t₁ t₂ t₁′ t₂′ l l′ r r′ a a₁ a₂ a′ b b₁ b₂ b′ : _ ⊢ _
+    A B C : Type
     Γ Γ′ Δ Δ₁ Δ₂ Γ₁ Γ₂ θ : Context
     σ σ′ σ₁ σ₂ τ τ′ : _ ⇉ _
 
@@ -37,6 +35,33 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
             ---------------------------------
             → Γ     ⊢ ƛ t ~ ƛ t′ ∶ A ⇒ B
 
+    sim-mul : Γ ⊢ l         ~          l′ ∶ A
+            → Γ ⊢ r         ~          r′ ∶ B
+            -------------------------------------
+            → Γ ⊢ ⟨ l , r ⟩ ~ ⟨ l′ , r′ ⟩ ∶ A × B
+
+    sim-pi1 : Γ ⊢ t    ~ t′    ∶ A × B
+            --------------------------
+            → Γ ⊢ π₁ t ~ π₁ t′ ∶ A
+
+    sim-pi2 : Γ ⊢ t    ~ t′    ∶ A × B
+            --------------------------
+            → Γ ⊢ π₂ t ~ π₂ t′ ∶ B
+
+    sim-cof : Γ     ⊢ t               ~ t′                 ∶ A + B
+            → Γ , A ⊢ l               ~ l′                 ∶ C
+            → Γ , B ⊢ r               ~ r′                 ∶ C
+            --------------------------------------------------
+            → Γ     ⊢ case t of l , r ~ case t′ of l′ , r′ ∶ C
+    
+    sim-inl : Γ ⊢ t     ~ t′     ∶ A
+            ------------------------------------
+            → Γ ⊢ inl {B = B} t ~ inl {B = B} t′ ∶ A + B
+        
+    sim-inr : Γ ⊢ t     ~ t′     ∶ B
+            ------------------------------------
+            → Γ ⊢ inr {A = A} t ~ inr {A = A} t′ ∶ A + B
+
     sim-box : {t t′ : Γ ⊢ □ A}  
             → Γ ⊢ t ~ t′ ∶ □ A
     
@@ -48,25 +73,44 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
               → Γ ⊢ unbox {ext = ext} t ~ unbox {ext = ext} t′ ∶ A
 
 sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
-sim-refl zer     = sim-zer
-sim-refl (suc n) = sim-suc (sim-refl n)
-sim-refl (var x) = sim-var x
-sim-refl (ƛ t)   = sim-lam (sim-refl t)
-sim-refl (box t) = sim-box
-sim-refl (l ∙ r) = sim-app (sim-refl l) (sim-refl r)
+sim-refl zer       = sim-zer
+sim-refl (suc n)   = sim-suc (sim-refl n)
+sim-refl (var x)   = sim-var x
+sim-refl (ƛ t)     = sim-lam (sim-refl t)
+sim-refl (inl t)   = sim-inl (sim-refl t)
+sim-refl (inr t)   = sim-inr (sim-refl t)
+sim-refl (case t of l , r) = sim-cof (sim-refl t) (sim-refl l) (sim-refl r)
+sim-refl (π₁ t)    = sim-pi1 (sim-refl t)
+sim-refl (π₂ t)    = sim-pi2 (sim-refl t)
+sim-refl ⟨ l , r ⟩ = sim-mul (sim-refl l) (sim-refl r)
+sim-refl (box t)   = sim-box
+sim-refl (l ∙ r)   = sim-app (sim-refl l) (sim-refl r)
 sim-refl (unbox {ext = e} t) 
     = sim-unbox 
 
 -- Simulation implies typing, used to coax agda into unifying types of simulations.
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
-sit _          _          sim-zer     = refl
-sit _          _          (sim-suc n) = refl
-sit _          _          (sim-var x) = refl
-sit _          _          sim-box     = refl
-sit (l₁ ∙ r₁)  (l₂ ∙ r₂)  (sim-app simₗ simᵣ) with sit l₁ l₂ simₗ
+sit _ _ sim-zer      = refl
+sit _ _ (sim-suc n)  = refl
+sit _ _ (sim-var x)  = refl
+sit _ _ sim-box      = refl
+sit _ _ sim-unbox    = refl
+sit _ _ (sim-lam sim)           with sit _ _ sim 
 ... | refl = refl
-sit (ƛ t₁)     (ƛ t₂)     (sim-lam sim)       rewrite sit t₁ t₂ sim = refl
-sit (unbox t₁) (unbox t₂) sim-unbox = refl
+sit _ _ (sim-app simₗ simᵣ)     with sit _ _ simₗ
+... | refl = refl
+sit _ _ (sim-inl sim)           with sit _ _ sim 
+... | refl = refl
+sit _ _ (sim-inr sim)           with sit _ _ sim 
+... | refl = refl 
+sit _ _ (sim-cof sim simₗ simᵣ) with sit _ _ sim | sit _ _ simₗ | sit _ _ simᵣ
+... | refl | refl | refl = refl
+sit _ _ (sim-pi1 sim) with sit _ _ sim 
+... | refl = refl
+sit _ _ (sim-pi2 sim) with sit _ _ sim 
+... | refl = refl
+sit _ _ (sim-mul simₗ simᵣ) with sit _ _ simₗ | sit _ _ simᵣ  
+... | refl | refl = refl 
 
 sit′ : {t₁ t₂ : Γ ⊢ B} → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
 sit′ {t₁ = t₁} {t₂ = t₂} = sit t₁ t₂ 
@@ -111,6 +155,20 @@ module Lemmas where
                                 (sim-weak r₁ r₂ wk simᵣ)
     
     sim-weak (unbox {ext} t₁) (unbox t₂) wk sim-unbox = sim-unbox
+
+    sim-weak (⟨ l₁ , r₁ ⟩) (⟨ l₂ , r₂ ⟩) wk (sim-mul sim sim₁) 
+        = sim-mul (sim-weak l₁ l₂ wk sim) (sim-weak r₁ r₂ wk sim₁)
+        
+    sim-weak (π₁ t₁) (π₁ t₂) wk (sim-pi1 sim) with sit′ sim
+    ... | refl = sim-pi1 (sim-weak t₁ t₂ wk sim)
+    sim-weak (π₂ t₁) (π₂ t₂) wk (sim-pi2 sim) with sit′ sim
+    ... | refl = sim-pi2 (sim-weak t₁ t₂ wk sim)
+
+    sim-weak (case t₁ of l₁ , r₁) (case t₂ of l₂ , r₂) wk (sim-cof sim sim₁ sim₂) 
+        = sim-cof (sim-weak t₁ t₂ wk sim) (sim-weak l₁ l₂ (⊆-keep wk) sim₁) (sim-weak r₁ r₂ (⊆-keep wk) sim₂)
+    
+    sim-weak (inl t₁) (inl t₂) wk (sim-inl sim) = sim-inl (sim-weak t₁ t₂ wk sim)
+    sim-weak (inr t₁) (inr t₂) wk (sim-inr sim) = sim-inr (sim-weak t₁ t₂ wk sim)    
 
     sim-weak′ : {t₁ t₂ : Γ ⊢ A} 
               → {wk : Γ ⊆ Δ}

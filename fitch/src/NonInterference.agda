@@ -46,16 +46,33 @@ ius prf (unbox t₁) (unbox t₂) σ₁ σ₂ (sim-unbox {ext = ext}) simσ = �
 
 ius prf t₁ t₂ σ₁ σ₂ sim-box _ = sim-box
 
+ius prf (⟨ l₁ , r₁ ⟩) (⟨ l₂ , r₂ ⟩) σ₁ σ₂ (sim-mul sim sim₁) simσ 
+    = sim-mul (ius prf l₁ l₂ σ₁ σ₂ sim simσ) (ius prf r₁ r₂ σ₁ σ₂ sim₁ simσ)
+
+ius prf (π₁ t₁) (π₁ t₂) σ₁ σ₂ (sim-pi1 sim) simσ with sit′ sim
+... | refl = sim-pi1 (ius prf t₁ t₂ σ₁ σ₂ sim simσ)
+ius prf (π₂ t₁) (π₂ t₂) σ₁ σ₂ (sim-pi2 sim) simσ with sit′ sim
+... | refl = sim-pi2 (ius prf t₁ t₂ σ₁ σ₂ sim simσ)
+
+ius prf (inl t₁) (inl t₂) σ₁ σ₂ (sim-inl sim) simσ = sim-inl (ius prf t₁ t₂ σ₁ σ₂ sim simσ)
+ius prf (inr t₁) (inr t₂) σ₁ σ₂ (sim-inr sim) simσ = sim-inr (ius prf t₁ t₂ σ₁ σ₂ sim simσ)
+
+ius prf (case t₁ of l₁ , r₁) (case t₂ of l₂ , r₂) σ₁ σ₂ (sim-cof sim simₗ simᵣ) simσ 
+    = sim-cof (ius prf t₁ t₂ σ₁ σ₂ sim simσ) 
+              (ius (¬■, prf) l₁ l₂ (σ+ σ₁) (σ+ σ₂) simₗ (lemma-σ+ simσ))
+              (ius (¬■, prf) r₁ r₂ (σ+ σ₁) (σ+ σ₂) simᵣ (lemma-σ+ simσ))
+
 -- Non-interference for the Fitch calculus
-bisim : ¬■ Γ → pure A
+bisim : (t₁ t₂ : Γ ⊢ A)
+   → ¬■ Γ → pure A
    → Γ ⊢ t₁ ~ t₂ ∶ A 
    → t₁ ↝ t₁′ 
    ------------------------------------------------------
    → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝ t₂′) ×′ (Γ ⊢ t₁′ ~ t₂′ ∶ A))
-bisim ()  p sim-unbox β■
-bisim prf p sim (ξunbox {ext = ext} step) = ⊥-elim (¬■-■ prf ext)
+bisim _ _ ()  p sim-unbox β■
+bisim _ _ prf p sim (ξunbox {ext = ext} step) = ⊥-elim (¬■-■ prf ext)
 
-bisim {t₁ = (ƛ t₁) ∙ r₁} {t₂ = (ƛ t₂) ∙ r₂} prf pp (sim-app (sim-lam simₗ) simᵣ) βƛ 
+bisim ((ƛ t₁) ∙ r₁) ((ƛ t₂) ∙ r₂) prf p (sim-app (sim-lam simₗ) simᵣ) βƛ 
     with sit′ simₗ | sit′ simᵣ 
 ... | refl | refl = t₂ [ r₂ ] 
                   ، βƛ 
@@ -63,16 +80,41 @@ bisim {t₁ = (ƛ t₁) ∙ r₁} {t₂ = (ƛ t₂) ∙ r₂} prf pp (sim-app (s
                         simₗ 
                         (simσ-• simσ-refl simᵣ)
 
-bisim {t₁ = l₁ ∙ r₁} {t₂ = l₂ ∙ r₂} prf p sim@(sim-app simₗ simᵣ) (ξappl step)
+bisim (l₁ ∙ r₁) (l₂ ∙ r₂) prf p sim@(sim-app simₗ simᵣ) (ξappl step)
                          with  sit′ sim | sit′ simₗ | sit′ simᵣ 
-... | refl | refl | refl with bisim prf (p⇒ p) simₗ step
+... | refl | refl | refl with bisim _ _ prf (p⇒ p) simₗ step
 ... | l₂′ ، step ، sim′ = l₂′ ∙ r₂ ، ξappl step ، sim-app sim′ simᵣ
  
-bisim prf p (sim-suc sim) (ξsucc step) 
+bisim _ _ prf p (sim-suc sim) (ξsucc step) 
            with sit′ sim 
-... | refl with bisim prf p sim step
+... | refl with bisim _ _ prf p sim step
 ... | t₂′ ، step′ ، sim′ = suc t₂′ ، ξsucc step′ ، sim-suc sim′
 
+bisim (case inl t₁ of l₁ , r₁) (case inl t₂ of l₂ , r₂) prf p (sim-cof (sim-inl sim) simₗ simᵣ) βinl 
+            with sit′ sim | sit′ simₗ | sit′ simᵣ 
+... | refl | refl | refl = l₂ [ t₂ ] ، βinl ، ius (¬■, prf) l₁ l₂ (id • t₁) (id • t₂) simₗ (simσ-• simσ-refl sim)
+
+bisim (case inr t₁ of l₁ , r₁) (case inr t₂ of l₂ , r₂) prf p (sim-cof (sim-inr sim) simₗ simᵣ) βinr 
+            with sit′ sim | sit′ simₗ | sit′ simᵣ 
+... | refl | refl | refl = r₂ [ t₂ ] ، βinr ، ius (¬■, prf) r₁ r₂ (id • t₁) (id • t₂) simᵣ (simσ-• simσ-refl sim)
+
+bisim (π₁ ⟨ l₁ , r₁ ⟩) (π₁ ⟨ l₂ , r₂ ⟩) prf p (sim-pi1 (sim-mul simₗ simᵣ)) βπ₁
+    = l₂ ، βπ₁ ، simₗ
+bisim (π₂ ⟨ l₁ , r₁ ⟩) (π₂ ⟨ l₂ , r₂ ⟩) prf p (sim-pi2 (sim-mul simₗ simᵣ)) βπ₂
+    = r₂ ، βπ₂ ، simᵣ
+
+bisim  (case t₁ of l₁ , r₁) (case t₂ of l₂ , r₂) prf p (sim-cof sim sim₁ sim₂) (ξcase step) 
+           with bisim t₁ t₂ prf p+ sim step 
+... | t₂′ ، step′ ، sim′ = case t₂′ of l₂ , r₂ ، ξcase step′ ، sim-cof sim′ sim₁ sim₂
+bisim  (π₁ t₁) (π₁ t₂) prf p (sim-pi1 sim) (ξπ₁ step) 
+           with sit′ sim
+... | refl with bisim t₁ t₂ prf p× sim step 
+... | t₂′ ، step′ ، sim′ = π₁ t₂′ ، ξπ₁ step′ ، sim-pi1 sim′
+
+bisim (π₂ t₁) (π₂ t₂) prf p (sim-pi2 sim) (ξπ₂ step) 
+           with sit′ sim
+... | refl with bisim t₁ t₂ prf p× sim step 
+... | t₂′ ، step′ ، sim′ = π₂ t₂′ ، ξπ₂ step′ ، sim-pi2 sim′
 
 -- Multi-step bisimulation
 bisim⋆ : ¬■ Γ → pure A
@@ -81,10 +123,10 @@ bisim⋆ : ¬■ Γ → pure A
        ------------------------------------------------------
        → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝⋆ t₂′) ×′ (Γ ⊢ t₁′ ~ t₂′ ∶ A))
 bisim⋆ {t₂ = t₂} prf p sim ⋆refl = t₂ ، ⋆refl ، sim
-bisim⋆ prf p sim (⋆step step)       with bisim prf p  sim step
+bisim⋆ prf p sim (⋆step step)       with bisim _ _ prf p  sim step
 ... | p′ ، sim′ ، step′    = p′ ، ⋆step sim′ ، step′
 bisim⋆ prf p sim (⋆trns steps step) with bisim⋆ prf p sim steps 
-... | t₂′ ، steps′ ، sim′        with bisim prf p sim′ step
+... | t₂′ ، steps′ ، sim′        with bisim _ _ prf p sim′ step
 ... | t₂′′ ، step′ ، sim′′ = t₂′′ ، ⋆trns steps′ step′ ، sim′′
 
 
@@ -96,11 +138,10 @@ non-interference : (v : ∅        ⊢ Nat)
                  -------------
                  → V [ u ] ⇓ v
 non-interference v V t u V[t]-reduces = 
-    let stepsₗ ، v-normal             = V[t]-reduces
+    let stepsₗ ، v-value             = V[t]-reduces
         t~u                          = sim-box
         V~V                          = sim-refl V
         V[t]~V[u]                    = ius (¬■, ¬■∅) V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
-        v-value                      = normal-value v v-normal
         V[u]′ ، stepsᵣ ، v~V[u]′      = bisim⋆ ¬■∅ pℕ V[t]~V[u] stepsₗ
         V[u]′-value                  = sim-value v V[u]′ v~V[u]′ v-value
         v≡V[u]′                      = ind-eql v V[u]′ v-value V[u]′-value v~V[u]′

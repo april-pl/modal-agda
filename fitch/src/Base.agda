@@ -7,13 +7,18 @@ open import Data.Unit
 open import Relation.Binary.PropositionalEquality
 open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 open import Data.Sum
+
 infixr 7 _⇒_
+infixr 7 _×_
+infixr 7 _+_
 
 -- Modal type constructors.
 data Type : Set where 
     Nat  : Type
     □_   : Type → Type
     _⇒_ : Type → Type → Type
+    _×_  : Type → Type → Type
+    _+_  : Type → Type → Type  
 
 infixl 5 _,_
 -- Contexts with locks.
@@ -111,6 +116,8 @@ data _⊆_ : Context → Context → Set where
 data pure : Type → Set where
     pℕ  : pure Nat
     p⇒ : pure B → pure (A ⇒ B)
+    p× : pure (A × B)
+    p+ : pure (A + B)
 
 ¬M-pure : ¬ pure (□ A)
 ¬M-pure () 

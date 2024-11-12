@@ -3,22 +3,77 @@ open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Empty
 open import Data.Unit
-open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Product hiding (_×_) renaming (_,_ to _،_)
 open import Data.Sum
 
 infixr 7 _⇒_
 infixr 7 _×_
 infixr 7 _+_
--- infixl 2 T_
--- Modal type constructors.
-data Type : Set where 
-    Nat  : Type
-    T    : Type → Type
-    _⇒_ : Type → Type → Type
-    _×_  : Type → Type → Type
-    _+_  : Type → Type → Type  
 
+data TyContext : Set where
+    none :  TyContext
+    new  : TyContext → TyContext 
+
+private variable
+    θ θ′ : TyContext
+
+data α∈_ : TyContext → Set where
+    Zty : α∈ (new θ)
+    Sty : α∈ θ → α∈ (new θ)
+
+data TypeIn : TyContext → Set where 
+    TyVar : α∈ θ → TypeIn θ
+
+    Nat  : TypeIn θ
+    T    : TypeIn θ → TypeIn θ
+    _⇒_ : TypeIn θ → TypeIn θ → TypeIn θ
+    _×_  : TypeIn θ → TypeIn θ → TypeIn θ
+    _+_  : TypeIn θ → TypeIn θ → TypeIn θ  
+
+    Rec : TypeIn (new θ) → TypeIn θ
+
+Type : Set
+Type = TypeIn none
+
+ty-weakening : TypeIn θ → TypeIn (new θ)
+ty-weakening (TyVar x) = TyVar (Sty x)
+ty-weakening (Rec t)   = Rec (ty-weakening t)
+ty-weakening (T t)     = T (ty-weakening t)
+ty-weakening (l ⇒ r)  = ty-weakening l ⇒ ty-weakening r
+ty-weakening (l × r)   = ty-weakening l × ty-weakening r
+ty-weakening (l + r)   = ty-weakening l + ty-weakening r
+ty-weakening Nat = Nat
+
+data TySub : TyContext → TyContext → Set where
+    tnil : TySub θ none
+    text : TySub θ′ θ → TypeIn θ′ → TySub θ′ (new θ)
+
+ty-wk : TySub θ′ θ → TySub (new θ′) θ
+ty-wk tnil = tnil
+ty-wk (text σ t) = text (ty-wk σ) (ty-weakening t)
+
+ty-id : TySub θ θ
+ty-id {θ = none} = tnil
+ty-id {θ = new θ} = text (ty-wk ty-id) (TyVar Zty)
+
+ty+ : TySub θ′ θ → TySub (new θ′) (new θ)
+ty+ σ = text (ty-wk σ) (TyVar Zty)
+
+rep : TySub θ′ θ → TypeIn θ → TypeIn θ′
+rep (text σ t) (TyVar Zty)     = t
+rep (text σ t) (TyVar (Sty x)) = rep σ (TyVar x)
+rep σ (Rec t)                  = Rec (rep (ty+ σ) t)
+
+rep σ (T t)    = T (rep σ t)
+rep σ (l ⇒ r) = rep σ l ⇒ rep σ r
+rep σ (l × r)  = rep σ l × rep σ r
+rep σ (l + r)  = rep σ l + rep σ r
+rep σ Nat      = Nat
+
+_⁅_⁆ : TypeIn (new θ) → TypeIn θ → TypeIn θ
+t ⁅ τ ⁆ = rep (text ty-id τ) t
+ 
 infixl 5 _,_
 data Context : Set where
     ∅   : Context
@@ -76,14 +131,16 @@ data _⊆_ : Context → Context → Set where
 Γ-weak (⊆-keep rest) Z     = Z  
 
 -- Evidence that a type is pure (non-modal)
-data pure : Type → Set where
-    pℕ  : pure Nat
+data pure : TypeIn θ → Set where
+    pℕ  : pure {θ = θ} Nat
     p⇒ : pure B → pure (A ⇒ B)
+    pV : ∀ { x } → pure {θ = θ} (TyVar x)
     p× : pure (A × B)
     p+ : pure (A + B)
-
+    pμ : ∀ { B } → pure {θ = θ} (Rec B)
+ 
 ¬M-pure : ¬ pure (T A)
 ¬M-pure () 
 
 impure : {P : Set} → pure (T A) → P
-impure ()  
+impure ()   

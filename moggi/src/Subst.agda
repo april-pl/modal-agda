@@ -37,20 +37,8 @@ p = wk id
 σ+  : Γ ⇉ Δ → Γ , A ⇉ Δ , A
 σ+ σ = wk σ • var Z
 
--- _◦_ : Δ ⇉ Γ → θ ⇉ Δ → θ ⇉ Γ
--- ε           ◦ τ = ε
--- (σ • t)     ◦ τ = (σ ◦ τ) • sub τ t
--- -----------------------------------
--- (σ •[ is-ext w ]■) ◦ (τ • t) with sub-←■ τ 
--- ... | τ′                     with is∷-←■ w
--- ... | refl                   with ⇉-has-■-l τ (is∷-locked w)
--- ... | lock = (σ ◦ τ′) •[ partition-locked lock ]■
--- -------------------------------------------------
--- (σ •[ w ]■) ◦ (τ •[ m ]■) with is∷-unpeelₗ w
--- ... | refl = (σ ◦ τ) •[ m ]■
-
 -- Parallel substitution
-sub : Γ ⇉ Δ → Δ ⊢ A → Γ ⊢ A
+sub : Δ ⇉ Γ → Γ ⊢ A → Δ ⊢ A
 sub σ zer     = zer
 sub σ (suc n) = suc (sub σ n)
 ---------------------
@@ -71,6 +59,9 @@ sub σ (inl t) = inl (sub σ t)
 sub σ (inr t) = inr (sub σ t)
 sub σ (π₁ t)  = π₁ (sub σ t)
 sub σ (π₂ t)  = π₂ (sub σ t)
+----------------------------
+sub σ (fold A t)   = fold A (sub σ t)
+sub σ (unfold A p t) = unfold A p (sub σ t)
 
 -- Composition of substitutions
 _◦_ : Δ ⇉ Γ → θ ⇉ Δ → θ ⇉ Γ

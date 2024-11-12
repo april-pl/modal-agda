@@ -25,6 +25,7 @@ ius : (t₁ t₂ : Γ ⊢ A)
     → Δ , Γ ⊢ σ₁          ~ σ₂ 
     -----------------------------------
     → Δ     ⊢ (sub σ₁ t₁) ~ (sub σ₂ t₂) ∶ A
+    
 ius _       _       σ₁ σ₂ sim-zer       simσ = sim-zer
 ius (suc n) (suc m) σ₁ σ₂ (sim-suc sim) simσ = sim-suc (ius n m σ₁ σ₂ sim simσ)
 -------------------------------------------------------------------------------
@@ -57,6 +58,8 @@ ius (case t₁ of l₁ , r₁) (case t₂ of l₂ , r₂) σ₁ σ₂ (sim-cof s
               (ius l₁ l₂ (σ+ σ₁) (σ+ σ₂) simₗ (lemma-σ+ simσ))
               (ius r₁ r₂ (σ+ σ₁) (σ+ σ₂) simᵣ (lemma-σ+ simσ))
 
+ius (fold B t₁)   (fold B t₂)   σ₁ σ₂ (sim-fold sim) simσ   = sim-fold (ius t₁ t₂ σ₁ σ₂ sim simσ) 
+ius (unfold _ refl t₁) (unfold _ refl t₂) σ₁ σ₂ (sim-unfold _ refl sim) simσ = sim-unfold _ refl (ius _ _ σ₁ σ₂ sim simσ) 
 
 -- Non-interference relation is a bisimulation      
 bisim : (t₁ t₂ : Γ ⊢ A)
@@ -111,6 +114,13 @@ bisim (π₂ t₁) (π₂ t₂) p (sim-pi2 sim) (ξπ₂ step)
 ... | refl with bisim t₁ t₂ p× sim step 
 ... | t₂′ ، step′ ، sim′ = π₂ t₂′ ، ξπ₂ step′ ، sim-pi2 sim′
 
+bisim (unfold B .refl (fold B t₁)) (unfold B .refl (fold B t₂)) p (sim-unfold B .refl (sim-fold sim)) βunfold 
+    = t₂ ، βunfold ، sim
+
+bisim (unfold B q₁ t₁) (unfold B q₂ t₂) p (sim-unfold B q₃ sim) (ξunfold step q₄) with bisim t₁ t₂ pμ sim step 
+... | t₂′ ، step′ ، sim′ = unfold B q₁ t₂′ ، ξunfold step′ q₁ ، sim-unfold _ q₁ sim′
+
+
 -- Multi-step bisimulation
 bisim⋆ : pure A 
        → Γ ⊢ t₁ ~ t₂ ∶ A 
@@ -131,16 +141,15 @@ non-interference : (v : ∅       ⊢ Nat)
                  → (u : ∅       ⊢ T A)
                  → V [ t ] ⇓ v
                  -------------
-                 → V [ u ] ⇓ v
+                 → V [ u ] ⇓ v 
 non-interference v V t u V[t]-reduces = 
-    let stepsₗ ، v-normal             = V[t]-reduces
+    let stepsₗ ، v-value             = V[t]-reduces
         t~u                          = sim-mon t u
         V~V                          = sim-refl V
         V[t]~V[u]                    = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
-        v-value                      = normal-value v v-normal
         V[u]′ ، stepsᵣ ، v~V[u]′      = bisim⋆ pℕ V[t]~V[u] stepsₗ
         V[u]′-value                  = sim-value v V[u]′ v~V[u]′ v-value
         v≡V[u]′                      = ind-eql v V[u]′ v-value V[u]′-value v~V[u]′
         
         V[u]↝⋆v                     = subst (λ p → V [ u ] ↝⋆ p) (sym v≡V[u]′) stepsᵣ
-    in V[u]↝⋆v ، proj₂ V[t]-reduces   
+    in V[u]↝⋆v ، proj₂ V[t]-reduces     

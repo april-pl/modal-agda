@@ -16,6 +16,12 @@ infix 4 _↝_
 data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
     β■ : unbox {ext = ext} (box t) ↝ t
     βƛ : (ƛ t) ∙ r                  ↝ t [ r ]
+
+    βinl : case (inl t) of l , r ↝ l [ t ]  
+    βinr : case (inr t) of l , r ↝ r [ t ]
+
+    βπ₁ : π₁ ⟨ t , u ⟩ ↝ t
+    βπ₂ : π₂ ⟨ t , u ⟩ ↝ u
     
     ξsucc : t ↝ t′ → suc t       ↝ suc t′
     ξappl : l ↝ l′ → l ∙ r ↝ l′ ∙ r
@@ -24,6 +30,11 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
     -- Otherwise box 1 ~ box ((λx. x) 1), and NI is broken. 
     -- ξbox   : t ↝ t′ → box   t ↝ box   t′
     ξunbox : t ↝ t′ → unbox {ext = ext} t ↝ unbox {ext = ext} t′
+
+    ξcase : t ↝ t′ → case t of l , r ↝ case t′ of l , r
+
+    ξπ₁ : t ↝ t′ → π₁ t ↝ π₁ t′
+    ξπ₂ : t ↝ t′ → π₂ t ↝ π₂ t′
 
 infix 4 _↝⋆_
 data _↝⋆_ : Γ ⊢ A → Γ ⊢ A → Set where
