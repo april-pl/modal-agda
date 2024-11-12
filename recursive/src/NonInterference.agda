@@ -114,44 +114,42 @@ bisim (π₂ t₁) (π₂ t₂) p (sim-pi2 sim) (ξπ₂ step)
 ... | refl with bisim t₁ t₂ p× sim step 
 ... | t₂′ ، step′ ، sim′ = π₂ t₂′ ، ξπ₂ step′ ، sim-pi2 sim′
 
--- bisim (unfold B (fold B t₁)) (unfold B (fold B t₂)) p (sim-unfold B (sim-fold sim)) βunfold 
---     = t₂ ، βunfold ، sim
+bisim (unfold B .refl (fold B t₁)) (unfold B .refl (fold B t₂)) p (sim-unfold B .refl (sim-fold sim)) βunfold 
+    = t₂ ، βunfold ، sim
 
--- bisim (unfold B t₁) (unfold B t₂) p (sim-unfold B sim) (ξunfold step) with bisim t₁ t₂ ? sim step 
--- ... | t₂′ ، step′ ، sim′ = unfold B t₂′ ، ξunfold step′ ، sim-unfold _ sim′
+bisim (unfold B q₁ t₁) (unfold B q₂ t₂) p (sim-unfold B q₃ sim) (ξunfold step q₄) with bisim t₁ t₂ pμ sim step 
+... | t₂′ ، step′ ، sim′ = unfold B q₁ t₂′ ، ξunfold step′ q₁ ، sim-unfold _ q₁ sim′
 
-bisim (unfold B refl (fold B t₁)) t₂ p (sim-unfold B refl sim) βunfold = ?
-bisim (unfold B refl t₁) t₂ p (sim-unfold B refl sim) (ξunfold step refl) = ?
 
 -- Multi-step bisimulation
--- bisim⋆ : pure A 
---        → Γ ⊢ t₁ ~ t₂ ∶ A 
---        → t₁ ↝⋆ t₁′ 
---        ------------------------------------------------------
---        → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝⋆ t₂′) ×′ (Γ ⊢ t₁′ ~ t₂′ ∶ A))
--- bisim⋆ {t₂ = t₂} p sim ⋆refl = t₂ ، ⋆refl ، sim
--- bisim⋆ p sim (⋆step step)       with bisim _ _ p sim step
--- ... | p′ ، sim′ ، step′    = p′ ، ⋆step sim′ ، step′
--- bisim⋆ p sim (⋆trns steps step) with bisim⋆ p sim steps 
--- ... | t₂′ ، steps′ ، sim′        with bisim _ _ p sim′ step
--- ... | t₂′′ ، step′ ، sim′′ = t₂′′ ، ⋆trns steps′ step′ ، sim′′
+bisim⋆ : pure A 
+       → Γ ⊢ t₁ ~ t₂ ∶ A 
+       → t₁ ↝⋆ t₁′ 
+       ------------------------------------------------------
+       → Σ[ t₂′ ∈ Γ ⊢ A ] ((t₂ ↝⋆ t₂′) ×′ (Γ ⊢ t₁′ ~ t₂′ ∶ A))
+bisim⋆ {t₂ = t₂} p sim ⋆refl = t₂ ، ⋆refl ، sim
+bisim⋆ p sim (⋆step step)       with bisim _ _ p sim step
+... | p′ ، sim′ ، step′    = p′ ، ⋆step sim′ ، step′
+bisim⋆ p sim (⋆trns steps step) with bisim⋆ p sim steps 
+... | t₂′ ، steps′ ، sim′        with bisim _ _ p sim′ step
+... | t₂′′ ، step′ ، sim′′ = t₂′′ ، ⋆trns steps′ step′ ، sim′′
 
 
--- non-interference : (v : ∅       ⊢ Nat)
---                  → (V : ∅ , T A ⊢ Nat) 
---                  → (t : ∅       ⊢ T A)
---                  → (u : ∅       ⊢ T A)
---                  → V [ t ] ⇓ v
---                  -------------
---                  → V [ u ] ⇓ v 
--- non-interference v V t u V[t]-reduces = 
---     let stepsₗ ، v-value             = V[t]-reduces
---         t~u                          = sim-mon t u
---         V~V                          = sim-refl V
---         V[t]~V[u]                    = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
---         V[u]′ ، stepsᵣ ، v~V[u]′      = bisim⋆ pℕ V[t]~V[u] stepsₗ
---         V[u]′-value                  = sim-value v V[u]′ v~V[u]′ v-value
---         v≡V[u]′                      = ind-eql v V[u]′ v-value V[u]′-value v~V[u]′
+non-interference : (v : ∅       ⊢ Nat)
+                 → (V : ∅ , T A ⊢ Nat) 
+                 → (t : ∅       ⊢ T A)
+                 → (u : ∅       ⊢ T A)
+                 → V [ t ] ⇓ v
+                 -------------
+                 → V [ u ] ⇓ v 
+non-interference v V t u V[t]-reduces = 
+    let stepsₗ ، v-value             = V[t]-reduces
+        t~u                          = sim-mon t u
+        V~V                          = sim-refl V
+        V[t]~V[u]                    = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
+        V[u]′ ، stepsᵣ ، v~V[u]′      = bisim⋆ pℕ V[t]~V[u] stepsₗ
+        V[u]′-value                  = sim-value v V[u]′ v~V[u]′ v-value
+        v≡V[u]′                      = ind-eql v V[u]′ v-value V[u]′-value v~V[u]′
         
---         V[u]↝⋆v                     = subst (λ p → V [ u ] ↝⋆ p) (sym v≡V[u]′) stepsᵣ
---     in V[u]↝⋆v ، proj₂ V[t]-reduces     
+        V[u]↝⋆v                     = subst (λ p → V [ u ] ↝⋆ p) (sym v≡V[u]′) stepsᵣ
+    in V[u]↝⋆v ، proj₂ V[t]-reduces     
