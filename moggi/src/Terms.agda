@@ -17,8 +17,7 @@ infix  5 case_of_,_
 infix  3 _⊢_
 -- The type of well-typed and scoped terms.
 data _⊢_ : Context → Type → Set where
-    zer   : _⊢_ Γ Nat
-    suc   : _⊢_ Γ Nat → _⊢_ Γ Nat
+    ⋆ : Γ ⊢ Unit
     
     var   : A ∈ Γ → Γ ⊢ A
 
@@ -42,8 +41,7 @@ data _⊢_ : Context → Type → Set where
     
 
 weakening : Γ ⊆ Δ → Γ ⊢ A → Δ ⊢ A
-weakening wk zer     = zer
-weakening wk (suc n) = suc (weakening wk n)
+weakening wk ⋆       = ⋆
 weakening wk (var x) = var (Γ-weak wk x)
 weakening wk (η t)   = η weakening wk t
 weakening wk (ƛ t)   = ƛ weakening (⊆-keep wk) t

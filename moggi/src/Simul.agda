@@ -14,11 +14,7 @@ private variable
 
 infix 2 _⊢_~_∶_
 data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → Set where
-    sim-zer : Γ ⊢ zer ~ zer ∶ Nat
-
-    sim-suc : Γ ⊢ t     ~ t′     ∶ Nat
-            --------------------------
-            → Γ ⊢ suc t ~ suc t′ ∶ Nat
+    sim-one : Γ ⊢ ⋆ ~ ⋆ ∶ Unit
 
     sim-mon : (t  : Γ ⊢ T A)  
             → (t′ : Γ ⊢ T A)
@@ -79,8 +75,7 @@ data _⊢_~_∶_ : (Γ : Context) → Γ ⊢ A → Γ ⊢ A → (A : Type) → S
                → Γ ⊢ unfold B p t ~ unfold B p t′ ∶ C
 
 sim-refl : (t : Γ ⊢ A) → Γ ⊢ t ~ t ∶ A
-sim-refl zer           = sim-zer
-sim-refl (suc n)       = sim-suc (sim-refl n)
+sim-refl ⋆             = sim-one
 sim-refl (var x)       = sim-var x
 sim-refl (η t)         = sim-mon (η t) (η t)
 sim-refl (ƛ t)         = sim-lam (sim-refl t)
@@ -96,8 +91,7 @@ sim-refl (fold A t)    = sim-fold (sim-refl t)
 sim-refl (unfold A p t)  = sim-unfold _ p (sim-refl t)
 
 sit : (t₁ t₂ : Γ ⊢ B) → Γ ⊢ t₁ ~ t₂ ∶ A → A ≡ B
-sit _ _ sim-zer          = refl
-sit _ _ (sim-suc n)      = refl
+sit _ _ sim-one          = refl
 sit _ _ (sim-mon _ _)    = refl
 sit _ _ (sim-var x)      = refl
 sit _ _ (sim-fold sim)   = refl
@@ -143,8 +137,7 @@ module Lemmas where
              → (wk : Γ ⊆ Δ) 
              → Γ ⊢ t₁ ~ t₂ ∶ A 
              → Δ ⊢ weakening wk t₁ ~ weakening wk t₂ ∶ A
-    sim-weak _       _       wk sim-zer           = sim-zer
-    sim-weak (suc n) (suc m) wk (sim-suc sim)     = sim-suc (sim-weak n m wk sim)
+    sim-weak ⋆ ⋆ wk sim-one = sim-one
     
     sim-weak t₁ t₂ wk (sim-mon _ _) = sim-mon (weakening wk t₁) (weakening wk t₂)
     sim-weak _  _  wk (sim-var x)   = sim-var (Γ-weak wk x)

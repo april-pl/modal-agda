@@ -25,7 +25,7 @@ data α∈_ : TyContext → Set where
 data TypeIn : TyContext → Set where 
     TyVar : α∈ θ → TypeIn θ
 
-    Nat  : TypeIn θ
+    Unit  : TypeIn θ
     T    : TypeIn θ → TypeIn θ
     _⇒_ : TypeIn θ → TypeIn θ → TypeIn θ
     _×_  : TypeIn θ → TypeIn θ → TypeIn θ
@@ -36,6 +36,9 @@ data TypeIn : TyContext → Set where
 Type : Set
 Type = TypeIn none
 
+Bool : Type
+Bool = Unit + Unit
+
 ty-weakening : TypeIn θ → TypeIn (new θ)
 ty-weakening (TyVar x) = TyVar (Sty x)
 ty-weakening (Rec t)   = Rec (ty-weakening t)
@@ -43,7 +46,7 @@ ty-weakening (T t)     = T (ty-weakening t)
 ty-weakening (l ⇒ r)  = ty-weakening l ⇒ ty-weakening r
 ty-weakening (l × r)   = ty-weakening l × ty-weakening r
 ty-weakening (l + r)   = ty-weakening l + ty-weakening r
-ty-weakening Nat = Nat
+ty-weakening Unit = Unit
 
 data TySub : TyContext → TyContext → Set where
     tnil : TySub θ none
@@ -69,7 +72,7 @@ rep σ (T t)    = T (rep σ t)
 rep σ (l ⇒ r) = rep σ l ⇒ rep σ r
 rep σ (l × r)  = rep σ l × rep σ r
 rep σ (l + r)  = rep σ l + rep σ r
-rep σ Nat      = Nat
+rep σ Unit      = Unit
 
 _⁅_⁆ : TypeIn (new θ) → TypeIn θ → TypeIn θ
 t ⁅ τ ⁆ = rep (text ty-id τ) t
@@ -132,7 +135,7 @@ data _⊆_ : Context → Context → Set where
 
 -- Evidence that a type is pure (non-modal)
 data pure : TypeIn θ → Set where
-    pℕ  : pure {θ = θ} Nat
+    pU  : pure {θ = θ} Unit
     p⇒ : pure B → pure (A ⇒ B)
     pV : ∀ { x } → pure {θ = θ} (TyVar x)
     p× : pure (A × B)

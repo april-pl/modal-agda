@@ -18,13 +18,12 @@ private variable
 
 data Value : Γ ⊢ A → Set where
     Vƛ : {t : Γ , B ⊢ A} → Value (ƛ t) 
-    Vz : Value {Γ = Γ} zer
-    Vs : Value t → Value (suc t)
+    V⋆ : {Γ : Context} → Value {Γ = Γ} ⋆
     Vη : Value (η t)
 
     V× : Value ⟨ t , u ⟩
-    Vl : {B : Type} → Value (inl {B = B} t)
-    Vr : {A : Type} → Value (inr {A = A} t)
+    Vl : {B : Type} → Value t → Value (inl {B = B} t)
+    Vr : {A : Type} → Value t → Value (inr {A = A} t)
     Vf : {B : TypeIn (new none)} → {t : Γ ⊢ B ⁅ Rec B ⁆} → Value (fold B t)
 
 infix 1 _⇓_
@@ -32,20 +31,23 @@ _⇓_ : Γ ⊢ A → Γ ⊢ A → Set
 t ⇓ v = Product (t ↝⋆ v) (Value v)
 
 -- Indistinguishability is syntactic equality on values
-ind-eql : (n : ∅ ⊢ Nat) → (m : ∅ ⊢ Nat) → Value n → Value m → ∅ ⊢ n ~ m ∶ Nat → n ≡ m
-ind-eql zer     zer     Vz      Vz      sim-zer       = refl
-ind-eql (suc n) (suc m) (Vs vn) (Vs vm) (sim-suc sim) with ind-eql n m vn vm sim
-... | refl = refl 
+-- ind-eql : (n : ∅ ⊢ Nat) → (m : ∅ ⊢ Nat) → Value n → Value m → ∅ ⊢ n ~ m ∶ Nat → n ≡ m
+-- ind-eql zer     zer     Vz      Vz      sim-zer       = refl
+-- ind-eql (suc n) (suc m) (Vs vn) (Vs vm) (sim-suc sim) with ind-eql n m vn vm sim
+-- ... | refl = refl 
 
-ind-eql′ : {n : ∅ ⊢ Nat} → {m : ∅ ⊢ Nat} → Value n → Value m → ∅ ⊢ n ~ m ∶ Nat → n ≡ m
-ind-eql′ {n = n} {m = m} vn vm sim = ind-eql n m vn vm sim 
+ind-eql : (p q : ∅ ⊢ Bool) → Value p → Value q → ∅ ⊢ p ~ q ∶ Bool → p ≡ q
+ind-eql (inl ⋆) (inl ⋆) (Vl V⋆) (Vl V⋆) (sim-inl sim) = refl
+ind-eql (inr ⋆) (inr ⋆) (Vr V⋆) (Vr V⋆) (sim-inr sim) = refl
 
-sim-value : (n : ∅ ⊢ Nat) 
-          → (m : ∅ ⊢ Nat)
-          → ∅ ⊢ n ~ m ∶ Nat 
-          → Value n 
+ind-eql′ : {p q : ∅ ⊢ Bool} → Value p → Value q → ∅ ⊢ p ~ q ∶ Bool → p ≡ q
+ind-eql′ {p = p} {q = q} vp vq sim = ind-eql p q vp vq sim 
+
+sim-value : (p : ∅ ⊢ Bool) 
+          → (q : ∅ ⊢ Bool)
+          → ∅ ⊢ p ~ q ∶ Bool 
+          → Value p 
           ---------
-          → Value m
-sim-value zer zer sim-zer Vz = Vz
-sim-value (suc n) (suc m) (sim-suc sim) (Vs vn) with sim-value n m sim vn 
-... | v = Vs v 
+          → Value q
+sim-value (inl ⋆) (inl ⋆) (sim-inl sim-one) (Vl V⋆) = Vl V⋆
+sim-value (inr ⋆) (inr ⋆) (sim-inr sim-one) (Vr V⋆) = Vr V⋆ 

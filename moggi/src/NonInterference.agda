@@ -26,8 +26,7 @@ ius : (t₁ t₂ : Γ ⊢ A)
     -----------------------------------
     → Δ     ⊢ (sub σ₁ t₁) ~ (sub σ₂ t₂) ∶ A
     
-ius _       _       σ₁ σ₂ sim-zer       simσ = sim-zer
-ius (suc n) (suc m) σ₁ σ₂ (sim-suc sim) simσ = sim-suc (ius n m σ₁ σ₂ sim simσ)
+ius _ _ σ₁ σ₂ sim-one simσ = sim-one
 -------------------------------------------------------------------------------
 ius _ _ σ₁ σ₂ (sim-mon t₁ t₂) simσ = sim-mon (sub σ₁ t₁) (sub σ₂ t₂)
 --------------------------------------------------------------------
@@ -83,11 +82,6 @@ bisim (l₁ ∙ r₁) (l₂ ∙ r₂) p sim@(sim-app simₗ simᵣ) (ξappl step
 ... | refl | refl | refl with bisim l₁ l₂ (p⇒ p) simₗ step
 ... | l₂′ ، step ، sim′ = l₂′ ∙ r₂ ، ξappl step ، sim-app sim′ simᵣ
 
-bisim (suc t₁) (suc t₂) p (sim-suc sim) (ξsucc step) 
-           with sit′ sim 
-... | refl with bisim t₁ t₂ p sim step
-... | t₂′ ، step′ ، sim′ = suc t₂′ ، ξsucc step′ ، sim-suc sim′
-
 bisim (case inl t₁ of l₁ , r₁) (case inl t₂ of l₂ , r₂) p (sim-cof (sim-inl sim) simₗ simᵣ) βinl 
             with sit′ sim | sit′ simₗ | sit′ simᵣ 
 ... | refl | refl | refl = l₂ [ t₂ ] ، βinl ، ius l₁ l₂ (id • t₁) (id • t₂) simₗ (simσ-• simσ-refl sim)
@@ -135,8 +129,8 @@ bisim⋆ p sim (⋆trns steps step) with bisim⋆ p sim steps
 ... | t₂′′ ، step′ ، sim′′ = t₂′′ ، ⋆trns steps′ step′ ، sim′′
 
 
-non-interference : (v : ∅       ⊢ Nat)
-                 → (V : ∅ , T A ⊢ Nat) 
+non-interference : (v : ∅       ⊢ Bool)
+                 → (V : ∅ , T A ⊢ Bool) 
                  → (t : ∅       ⊢ T A)
                  → (u : ∅       ⊢ T A)
                  → V [ t ] ⇓ v
@@ -147,9 +141,9 @@ non-interference v V t u V[t]-reduces =
         t~u                          = sim-mon t u
         V~V                          = sim-refl V
         V[t]~V[u]                    = ius V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
-        V[u]′ ، stepsᵣ ، v~V[u]′      = bisim⋆ pℕ V[t]~V[u] stepsₗ
+        V[u]′ ، stepsᵣ ، v~V[u]′      = bisim⋆ p+ V[t]~V[u] stepsₗ
         V[u]′-value                  = sim-value v V[u]′ v~V[u]′ v-value
         v≡V[u]′                      = ind-eql v V[u]′ v-value V[u]′-value v~V[u]′
         
         V[u]↝⋆v                     = subst (λ p → V [ u ] ↝⋆ p) (sym v≡V[u]′) stepsᵣ
-    in V[u]↝⋆v ، proj₂ V[t]-reduces     
+    in V[u]↝⋆v ، proj₂ V[t]-reduces      

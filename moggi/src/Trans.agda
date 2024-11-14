@@ -28,7 +28,6 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
             → { t : Γ ⊢ B ⁅ Rec B ⁆ } 
             → _↝_ { A = B ⁅ Rec B ⁆ } (unfold B refl (fold B t)) t
 
-    ξsucc : t ↝ t′ → suc t       ↝ suc t′
     ξbind : t ↝ t′ → bind t of u ↝ bind t′ of u 
     ξappl : l ↝ l′ → l ∙ r       ↝ l′ ∙ r
     
