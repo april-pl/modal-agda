@@ -6,7 +6,6 @@ open import Trans
 open import Normalisation
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
-open import Data.Bool 
 open import Data.Empty
 open import Data.Nat
 open import Data.Product renaming (_,_ to _،_; _×_ to _×′_)
@@ -28,8 +27,7 @@ ius : ¬■ Γ
     -----------------------------------
     → Δ     ⊢ (sub σ₁ t₁) ~ (sub σ₂ t₂) ∶ A
 
-ius prf  _       _      σ₁ σ₂ sim-zer       simσ = sim-zer
-ius prf (suc n) (suc m) σ₁ σ₂ (sim-suc sim) simσ = sim-suc (ius prf n m σ₁ σ₂ sim simσ)
+ius prf _ _ σ₁ σ₂ sim-one simσ = sim-one
 
 ius prf       _ _ _         _         (sim-var Z)     (simσ-• _ sim)    = sim
 ius (¬■, prf) _ _ (σ₁ • u₁) (σ₂ • u₂) (sim-var (S x)) (simσ-• simσ sim) = 
@@ -87,11 +85,6 @@ bisim (l₁ ∙ r₁) (l₂ ∙ r₂) prf p sim@(sim-app simₗ simᵣ) (ξappl 
                          with  sit′ sim | sit′ simₗ | sit′ simᵣ 
 ... | refl | refl | refl with bisim _ _ prf (p⇒ p) simₗ step
 ... | l₂′ ، step ، sim′ = l₂′ ∙ r₂ ، ξappl step ، sim-app sim′ simᵣ
- 
-bisim _ _ prf p (sim-suc sim) (ξsucc step) 
-           with sit′ sim 
-... | refl with bisim _ _ prf p sim step
-... | t₂′ ، step′ ، sim′ = suc t₂′ ، ξsucc step′ ، sim-suc sim′
 
 bisim (case inl t₁ of l₁ , r₁) (case inl t₂ of l₂ , r₂) prf p (sim-cof (sim-inl sim) simₗ simᵣ) βinl 
             with sit′ sim | sit′ simₗ | sit′ simᵣ 
@@ -139,8 +132,8 @@ bisim⋆ prf p sim (⋆trns steps step) with bisim⋆ prf p sim steps
 ... | t₂′′ ، step′ ، sim′′ = t₂′′ ، ⋆trns steps′ step′ ، sim′′
 
 
-non-interference : (v : ∅        ⊢ Nat)
-                 → (V : ∅ , □ A  ⊢ Nat) 
+non-interference : (v : ∅        ⊢ Bool)
+                 → (V : ∅ , □ A  ⊢ Bool) 
                  → (t : ∅        ⊢ □ A)
                  → (u : ∅        ⊢ □ A)
                  → V [ t ] ⇓ v
@@ -151,7 +144,7 @@ non-interference v V t u V[t]-reduces =
         t~u                          = sim-box
         V~V                          = sim-refl V
         V[t]~V[u]                    = ius (¬■, ¬■∅) V V (id • t) (id • u) V~V (simσ-• simσ-ε t~u)
-        V[u]′ ، stepsᵣ ، v~V[u]′      = bisim⋆ ¬■∅ pℕ V[t]~V[u] stepsₗ
+        V[u]′ ، stepsᵣ ، v~V[u]′      = bisim⋆ ¬■∅ p+ V[t]~V[u] stepsₗ
         V[u]′-value                  = sim-value v V[u]′ v~V[u]′ v-value
         v≡V[u]′                      = ind-eql v V[u]′ v-value V[u]′-value v~V[u]′
          

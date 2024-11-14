@@ -29,7 +29,6 @@ data _↝_ : Γ ⊢ A → Γ ⊢ A → Set where
             → { t : Γ ⊢ B ⁅ Rec B ⁆ } 
             → _↝_ { A = B ⁅ Rec B ⁆ } (unfold B refl (fold B t)) t
     
-    ξsucc : t ↝ t′ → suc t       ↝ suc t′
     ξappl : l ↝ l′ → l ∙ r ↝ l′ ∙ r
 
     -- No β under boxes, we should treat boxes as values.

@@ -81,9 +81,8 @@ factor′ (is-ext ext) (σ • t)     = factor′ ext σ
 
 -- Parallel substitution
 sub : Γ ⇉ Δ → Δ ⊢ A → Γ ⊢ A
-sub σ zer     = zer
-sub σ (suc n) = suc (sub σ n)
----------------------
+sub σ ⋆ = ⋆
+-----------
 sub (σ • t) (var Z)     = t
 sub (σ • t) (var (S x)) = sub σ (var x)
 ---------------------------------------
